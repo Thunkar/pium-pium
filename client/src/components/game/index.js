@@ -8,5 +8,5 @@ export function Game() {
             <Board></Board>
             <Helm></Helm>
         </SC.Container>
-    )
+    );
 }

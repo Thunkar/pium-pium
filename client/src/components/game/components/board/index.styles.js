@@ -5,4 +5,4 @@ export const Container = styled.div`
     flex-direction: row;
     height: 70%;
     background-color: black;
-`
+`;

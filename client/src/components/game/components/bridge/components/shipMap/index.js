@@ -1,5 +1,3 @@
 export function ShipMap() {
-    return (
-        <img src='ship.png'></img>
-    )
+    return <img src="ship.png"></img>;
 }

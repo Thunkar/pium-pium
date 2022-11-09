@@ -2,10 +2,13 @@ import Fastify from 'fastify';
 import fs from 'fs/promises';
 import ws from '@fastify/websocket';
 import * as dotenv from 'dotenv';
+import { setLogger } from './game/utils.js';
 
 dotenv.config();
 
 const fastify = Fastify({ logger: true });
+
+setLogger(fastify.log);
 
 fastify.register(ws);
 

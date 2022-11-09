@@ -1,8 +1,8 @@
 {
-    "name": "pium-pium-server",
+    "name": "pium-pium-engine",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "lib/index.mjs",
     "type": "module",
     "scripts": {
         "lint": "eslint"
@@ -10,13 +10,8 @@
     "author": "",
     "license": "MIT",
     "dependencies": {
-        "@fastify/websocket": "^7.1.1",
         "@reduxjs/toolkit": "^1.9.0",
-        "dotenv": "^16.0.3",
-        "fastify": "^4.9.2",
-        "pium-pium-engine": "../engine",
-        "redux-saga": "^1.2.1",
-        "uuid": "^9.0.0"
+        "redux-saga": "^1.2.1"
     },
     "devDependencies": {}
 }

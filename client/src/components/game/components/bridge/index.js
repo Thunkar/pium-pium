@@ -1,6 +1,6 @@
-import { Reactor } from './components/reactor'
-import { ShipMap } from './components/shipMap'
-import * as SC from './index.styles'
+import { Reactor } from './components/reactor';
+import { ShipMap } from './components/shipMap';
+import * as SC from './index.styles';
 
 export function Helm() {
     return (
@@ -8,5 +8,5 @@ export function Helm() {
             <Reactor></Reactor>
             <ShipMap></ShipMap>
         </SC.Container>
-    )
+    );
 }
