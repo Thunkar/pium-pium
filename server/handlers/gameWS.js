@@ -1,4 +1,4 @@
-import { processMessage, seatPlayer } from '../game/sequencer.js';
+import { processMessage, seatPlayer, unseatPlayer } from '../game/sequencer.js';
 
 const clients = {};
 
@@ -7,6 +7,10 @@ export const handleClient = async (connection, request) => {
     clients[playerId] = connection;
     connection.socket.on('message', (message) => {
         processMessage(message, playerId);
+    });
+    connection.socket.on('close', () => {
+        delete clients[playerId];
+        unseatPlayer(playerId);
     });
     seatPlayer(playerId);
 };

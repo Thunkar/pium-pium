@@ -4,11 +4,15 @@ import {
     createShip,
     selectPlayer,
     selectPlayerShips,
+    removePlayer,
+    selectPlayers,
+    selectIsRunning,
+    startGameAction,
 } from 'pium-pium-engine';
 import { useSelector } from './utils.js';
 import { broadcast } from '../handlers/gameWS.js';
 
-const serverDispatch = (action) => {
+export const serverDispatch = (action) => {
     store.dispatch(action);
     broadcast(JSON.stringify(action));
 };
@@ -24,6 +28,15 @@ export const seatPlayer = (playerId) => {
     if (Object.keys(playerShips).length === 0) {
         serverDispatch(createShip({ playerId }));
     }
+    const players = useSelector(selectPlayers);
+    const isGameRunning = useSelector(selectIsRunning);
+    if (players.length > 1 && !isGameRunning) {
+        store.dispatch(startGameAction());
+    }
+};
+
+export const unseatPlayer = (playerId) => {
+    serverDispatch(removePlayer({ playerId }));
 };
 
 export const processMessage = (message, playerId) => {

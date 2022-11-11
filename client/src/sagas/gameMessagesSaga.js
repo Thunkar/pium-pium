@@ -8,12 +8,13 @@ import {
     take,
 } from 'redux-saga/effects';
 import { buffers, eventChannel } from 'redux-saga';
-import { actionsByType, syncRequest } from 'pium-pium-engine';
+import { actionsByType, syncRequestAction } from 'pium-pium-engine';
+import { v4 as uuidv4 } from 'uuid';
 
 const WsKeepAlivePeriod = 5 * 60 * 1000;
 const WebsocketFailedConnectionBackoff = 500;
 const wssURL = 'ws://localhost:3001/game';
-const playerId = 'thunkar';
+const playerId = uuidv4();
 
 function createWebsocketChannel(ws) {
     return eventChannel((emitter) => {
@@ -97,7 +98,7 @@ function* wsConnection() {
                 if (event.type === 'OPEN') {
                     console.debug('Websocket connected');
                     keepAliveTask = yield fork(keepAlive, ws);
-                    yield call(sendMessage, ws, syncRequest());
+                    yield call(sendMessage, ws, syncRequestAction());
                 } else if (event.type === 'MESSAGE') {
                     yield call(handleMessageEvent, event.messageEvent);
                 } else {
