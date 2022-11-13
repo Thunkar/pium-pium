@@ -5,7 +5,7 @@ export const Container = styled.div`
     align-items: center;
 `;
 
-export const ReactorCore = styled.div`
+export const NavigationChart = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
@@ -13,15 +13,9 @@ export const ReactorCore = styled.div`
     aspect-ratio: 1/1;
     background: radial-gradient(
         circle,
-        rgba(2, 0, 36, 1) 0%,
-        rgba(9, 9, 121, 1) 50%,
-        rgba(0, 198, 255, 1) 70%
+        rgb(0 0 0) 0%,
+        rgb(0 0 0) 50%,
+        rgb(40 40 40) 70%
     );
     border-radius: 50%;
-`;
-
-export const Energy = styled.div`
-    display: flex;
-    color: white;
-    font-size: 5em;
 `;

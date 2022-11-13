@@ -2,8 +2,10 @@ import styled from 'styled-components';
 
 export const Container = styled.div`
     display: flex;
+    position: relative;
     flex-direction: row;
-    height: 70%;
+    height: 100%;
+    width: 100%;
     background-color: black;
 `;
 

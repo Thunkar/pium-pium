@@ -15,12 +15,14 @@ export function Reactor() {
     const selectedShip = playerShips[selectedShipId];
     return (
         <SC.Container>
-            <SC.ReactorCore>
-                <SC.Energy>
-                    {selectedShip.reactor.remaining}/
-                    {selectedShip.reactor.total}
-                </SC.Energy>
-            </SC.ReactorCore>
+            {selectedShip && (
+                <SC.ReactorCore>
+                    <SC.Energy>
+                        {selectedShip.reactor.remaining}/
+                        {selectedShip.reactor.total}
+                    </SC.Energy>
+                </SC.ReactorCore>
+            )}
         </SC.Container>
     );
 }

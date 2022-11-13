@@ -1,3 +1,9 @@
+import * as SC from './index.styles';
+
 export function Helm() {
-    return <></>;
+    return (
+        <SC.Container>
+            <SC.NavigationChart></SC.NavigationChart>
+        </SC.Container>
+    );
 }
