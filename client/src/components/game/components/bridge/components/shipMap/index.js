@@ -1,3 +1,5 @@
+import * as SC from './index.styles.js';
+
 export function ShipMap() {
-    return <img src="ship.png"></img>;
+    return <SC.ShipImage src="assets/ship.png"></SC.ShipImage>;
 }

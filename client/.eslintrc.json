@@ -13,6 +13,7 @@
     "plugins": ["react", "prettier"],
     "rules": {
         "prettier/prettier": "error",
-        "react/no-unknown-property": "off"
+        "react/no-unknown-property": "off",
+        "react/prop-types": "off"
     }
 }

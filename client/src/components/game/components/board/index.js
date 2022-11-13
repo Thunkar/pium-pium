@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -18,13 +18,10 @@ import {
     selectShips,
 } from 'pium-pium-engine';
 import { Vector3 } from 'three';
+import { selectPlayerId } from '../../../../reducers/playerReducer';
 
 function Game() {
     const ships = useSelector(selectShips);
-    const playerShips = useSelector(selectPlayerShips);
-    const players = useSelector(selectPlayers);
-    const currentTurn = useSelector(selectCurrentTurn);
-    const currentTimer = useSelector(selectCurrentTimer);
     const camera = useRef(null);
     const controls = useRef(null);
     const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 3, 0));
@@ -37,12 +34,6 @@ function Game() {
             camera.current.position.lerp(cameraPosition, delta * 3);
             controls.current.target.lerp(cameraTarget, delta * 3);
             controls.current.update();
-            if (
-                camera.current.position.distanceTo(cameraPosition) < 0.1 &&
-                controls.current.target.distanceTo(cameraTarget) < 0.1
-            ) {
-                setCameraMoved(true);
-            }
         }
     });
     const onShipClicked = (ship) => {
@@ -67,6 +58,7 @@ function Game() {
                     key={ship.id}
                     rotation-y={ship.rotation}
                     position={ship.position}
+                    name={ship.name}
                     onClick={() => onShipClicked(ship)}
                 ></Ship>
             ))}
@@ -79,14 +71,34 @@ function Game() {
             </Plane>
             <gridHelper args={[100, 100]}></gridHelper>
             <PerspectiveCamera makeDefault ref={camera} />
-            <OrbitControls ref={controls} />
+            <OrbitControls
+                onStart={() => setCameraMoved(true)}
+                ref={controls}
+            />
         </>
     );
 }
 
 export function Board() {
+    const players = useSelector(selectPlayers);
+    const currentTurn = useSelector(selectCurrentTurn);
+    const currentTimer = useSelector(selectCurrentTimer);
+
     return (
         <SC.Container>
+            <SC.PlayerListContainer>
+                {players.map((player) => (
+                    <SC.Player
+                        selected={player.id === players?.[currentTurn]?.id}
+                        key={player.id}
+                    >
+                        {player.id}{' '}
+                        {player.id === players?.[currentTurn]?.id
+                            ? ` - ${currentTimer}`
+                            : ''}
+                    </SC.Player>
+                ))}
+            </SC.PlayerListContainer>
             <Canvas>
                 <Game></Game>
             </Canvas>

@@ -16,6 +16,7 @@
         "fastify": "^4.9.2",
         "pium-pium-engine": "../engine",
         "redux-saga": "^1.2.1",
+        "unique-names-generator": "^4.7.1",
         "uuid": "^9.0.0"
     },
     "devDependencies": {}

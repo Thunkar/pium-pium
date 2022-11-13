@@ -1,19 +1,26 @@
+import { selectPlayerShips } from 'pium-pium-engine';
 import { useSelector } from 'react-redux';
 import {
-    selectRemainingEnergy,
-    selectTotalEnergy,
-} from '../../../../../../reducers/shipSlice';
+    selectPlayerId,
+    selectSelectedShip,
+} from '../../../../../../reducers/playerReducer';
 import * as SC from './index.styles';
 
 export function Reactor() {
-    const remainingEnergy = useSelector(selectRemainingEnergy);
-    const totalEnergy = useSelector(selectTotalEnergy);
-
+    const playerId = useSelector(selectPlayerId);
+    const selectedShipId = useSelector(selectSelectedShip);
+    const playerShips = useSelector((state) =>
+        selectPlayerShips(state, playerId)
+    );
+    const selectedShip = playerShips[selectedShipId];
     return (
         <SC.Container>
-            <h1>
-                {remainingEnergy}/{totalEnergy}
-            </h1>
+            <SC.ReactorCore>
+                <SC.Energy>
+                    {selectedShip.reactor.remaining}/
+                    {selectedShip.reactor.total}
+                </SC.Energy>
+            </SC.ReactorCore>
         </SC.Container>
     );
 }

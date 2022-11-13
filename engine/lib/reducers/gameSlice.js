@@ -2,7 +2,7 @@ import * as toolkitRaw from '@reduxjs/toolkit/dist/index.js';
 const { createSlice, createSelector, createAction } =
     toolkitRaw.default ?? toolkitRaw;
 
-const PLAYER_TURN_TIME_SECONDS = 10;
+const PLAYER_TURN_TIME_SECONDS = 30;
 
 const gameSlice = createSlice({
     name: 'game',
@@ -32,47 +32,7 @@ const gameSlice = createSlice({
             });
         },
         createShip: (draft, action) => {
-            const shipNumber = Object.keys(draft.ships).length;
-            const id = `${action.payload.playerId}-${shipNumber}`;
-            const initialPositions = [
-                { x: 0, y: -50 },
-                { x: -50, y: 0 },
-                { x: 0, y: 50 },
-                { x: 50, y: 0 },
-            ];
-            const initialRotations = [
-                0,
-                Math.PI / 2,
-                Math.PI,
-                (3 * Math.PI) / 2,
-            ];
-            draft.ships[id] = {
-                id,
-                playerId: action.payload.playerId,
-                position: [
-                    initialPositions[shipNumber].x,
-                    2,
-                    initialPositions[shipNumber].y,
-                ],
-                rotation: initialRotations[shipNumber],
-                reactor: {
-                    total: 10,
-                    remaining: 10,
-                },
-                deflectors: {
-                    power: 0,
-                    position: 0,
-                    width: 0,
-                },
-                thrusters: {
-                    front: {
-                        power: 0,
-                    },
-                    retro: {
-                        power: 0,
-                    },
-                },
-            };
+            draft.ships[action.payload.ship.id] = action.payload.ship;
         },
         startTurn: (draft, action) => {
             draft.currentTurn = action.payload.currentTurn;
@@ -80,6 +40,9 @@ const gameSlice = createSlice({
         },
         timerEllapsed: (draft, action) => {
             draft.currentTimer -= action.payload.ellapsed;
+        },
+        gameStarted: (draft) => {
+            draft.isRunning = true;
         },
     },
 });
@@ -93,12 +56,14 @@ export const {
     sync,
     startTurn,
     timerEllapsed,
+    gameStarted,
 } = gameSlice.actions;
 export const syncRequestAction = createAction('game/syncRequest');
-export const startGameAction = createAction('game/start');
+export const seatPlayerAction = createAction('game/seatPlayer');
+export const unseatPlayerAction = createAction('game/unseatPlayer');
 
 export const actionsByType = Object.values(gameSlice.actions)
-    .concat([syncRequestAction, startGameAction])
+    .concat([syncRequestAction, seatPlayerAction, unseatPlayerAction])
     .reduce((previous, current) => {
         return { ...previous, ...{ [current.type]: current } };
     }, {});

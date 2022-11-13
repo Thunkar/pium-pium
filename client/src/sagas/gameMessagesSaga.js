@@ -5,16 +5,17 @@ import {
     delay,
     fork,
     put,
+    select,
     take,
 } from 'redux-saga/effects';
 import { buffers, eventChannel } from 'redux-saga';
 import { actionsByType, syncRequestAction } from 'pium-pium-engine';
 import { v4 as uuidv4 } from 'uuid';
+import { selectPlayerId, setPlayerId } from '../reducers/playerReducer';
 
 const WsKeepAlivePeriod = 5 * 60 * 1000;
 const WebsocketFailedConnectionBackoff = 500;
 const wssURL = 'ws://localhost:3001/game';
-const playerId = uuidv4();
 
 function createWebsocketChannel(ws) {
     return eventChannel((emitter) => {
@@ -84,6 +85,11 @@ export function* handleMessageEvent(messageEvent) {
 
 function* wsConnection() {
     while (true) {
+        let playerId = yield select(selectPlayerId);
+        if (!playerId) {
+            playerId = uuidv4();
+            yield put(setPlayerId({ playerId }));
+        }
         const ws = new WebSocket(`${wssURL}?playerId=${playerId}`);
 
         const channel = createWebsocketChannel(ws);

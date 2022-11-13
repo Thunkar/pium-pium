@@ -7,10 +7,9 @@ import rootSaga from './sagas/index.js';
 
 const sagaMiddleware = createSagaMiddleware();
 
-const logger = (store) => (next) => (action) => {
+const logger = () => (next) => (action) => {
     getLogger().info(action);
     let result = next(action);
-    getLogger().info(store.getState());
     return result;
 };
 
