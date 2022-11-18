@@ -3,6 +3,7 @@ import styled from 'styled-components';
 export const Container = styled.div`
     display: flex;
     position: relative;
+    margin: 0px 40px;
 `;
 
 const ButtonContainer = styled.div`
@@ -10,6 +11,7 @@ const ButtonContainer = styled.div`
     display: flex;
     justify-content: space-around;
     margin: auto;
+    align-items: center;
 `;
 
 export const Aft = styled(ButtonContainer)`

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CircularMenu } from './components/circularMenu/index.js';
+import { ActionsMenu } from './components/actionsMenu/index.js';
 import * as SC from './index.styles.js';
 import { Thrusters, ManeuveringThrusters } from 'pium-pium-engine';
 
@@ -7,7 +7,10 @@ export function ShipMap() {
     const [toggledMenus, setToggledMenus] = useState(0);
 
     const countToggledMenus = (menuState) => {
-        setToggledMenus(menuState ? toggledMenus + 1 : toggledMenus - 1);
+        const valueToAdd = menuState ? +1 : -1;
+        const result =
+            toggledMenus + valueToAdd > 0 ? toggledMenus + valueToAdd : 0;
+        setToggledMenus(result);
     };
 
     return (
@@ -19,21 +22,21 @@ export function ShipMap() {
             <SC.StarboardTrapezoid></SC.StarboardTrapezoid>
             {toggledMenus > 0 && <SC.Overlay></SC.Overlay>}
             <SC.Aft>
-                <CircularMenu
+                <ActionsMenu
                     onMenuToggled={countToggledMenus}
                     {...Thrusters}
-                ></CircularMenu>
+                ></ActionsMenu>
             </SC.Aft>
             <SC.Port></SC.Port>
             <SC.Forward>
-                <CircularMenu
+                <ActionsMenu
                     onMenuToggled={countToggledMenus}
                     {...Thrusters}
-                ></CircularMenu>
-                <CircularMenu
+                ></ActionsMenu>
+                <ActionsMenu
                     onMenuToggled={countToggledMenus}
                     {...ManeuveringThrusters}
-                ></CircularMenu>
+                ></ActionsMenu>
             </SC.Forward>
             <SC.Starboard></SC.Starboard>
         </SC.Container>
