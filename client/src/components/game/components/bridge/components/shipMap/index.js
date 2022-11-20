@@ -3,7 +3,7 @@ import { ActionsMenu } from './components/actionsMenu/index.js';
 import * as SC from './index.styles.js';
 import { Thrusters, ManeuveringThrusters } from 'pium-pium-engine';
 
-export function ShipMap() {
+export function ShipMap({ ship }) {
     const [toggledMenus, setToggledMenus] = useState(0);
 
     const countToggledMenus = (menuState) => {
@@ -24,18 +24,22 @@ export function ShipMap() {
             <SC.Aft>
                 <ActionsMenu
                     onMenuToggled={countToggledMenus}
-                    {...Thrusters}
+                    component={Thrusters}
+                    status={ship?.thrusters.aft}
                 ></ActionsMenu>
             </SC.Aft>
             <SC.Port></SC.Port>
             <SC.Forward>
                 <ActionsMenu
                     onMenuToggled={countToggledMenus}
-                    {...Thrusters}
+                    component={Thrusters}
+                    status={ship?.thrusters.retro}
                 ></ActionsMenu>
                 <ActionsMenu
                     onMenuToggled={countToggledMenus}
-                    {...ManeuveringThrusters}
+                    component={ManeuveringThrusters}
+                    status={ship?.thrusters.maneuvering}
+                    submenuRadius={4}
                 ></ActionsMenu>
             </SC.Forward>
             <SC.Starboard></SC.Starboard>

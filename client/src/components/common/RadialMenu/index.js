@@ -7,7 +7,7 @@ export const RadialMenu = function ({
     closedIcon,
     children,
     customToggle,
-    startAngle = 0,
+    startAngle = -90,
     rotationAngle = 360,
     radius = 5,
     onMenuToggled,

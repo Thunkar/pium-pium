@@ -6,20 +6,13 @@ import {
 } from '../../../../../../reducers/playerReducer';
 import * as SC from './index.styles';
 
-export function Reactor() {
-    const playerId = useSelector(selectPlayerId);
-    const selectedShipId = useSelector(selectSelectedShip);
-    const playerShips = useSelector((state) =>
-        selectPlayerShips(state, playerId)
-    );
-    const selectedShip = playerShips[selectedShipId];
+export function Reactor({ ship }) {
     return (
         <SC.Container>
-            {selectedShip && (
+            {ship && (
                 <SC.ReactorCore>
                     <SC.Energy>
-                        {selectedShip.reactor.remaining}/
-                        {selectedShip.reactor.total}
+                        {ship?.reactor.remaining}/{ship?.reactor.total}
                     </SC.Energy>
                 </SC.ReactorCore>
             )}

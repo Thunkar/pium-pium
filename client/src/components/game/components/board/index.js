@@ -1,5 +1,5 @@
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, useState } from 'react';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -14,13 +14,26 @@ import {
     selectCurrentTimer,
     selectCurrentTurn,
     selectPlayers,
-    selectPlayerShips,
     selectShips,
 } from 'pium-pium-engine';
-import { Vector3 } from 'three';
-import { selectPlayerId } from '../../../../reducers/playerReducer';
+import { Vector3, TextureLoader, BackSide } from 'three';
+
+let skyboxImage = 'milky_way';
+
+function createPathStrings(filename) {
+    const basePath = `assets/skyboxes/${filename}/`;
+    const baseFilename = basePath + filename;
+    const fileType = '.png';
+    const sides = ['ft', 'bk', 'up', 'dn', 'rt', 'lf'];
+    const pathStings = sides.map((side) => {
+        return baseFilename + '_' + side + fileType;
+    });
+
+    return pathStings;
+}
 
 function Game() {
+    const materialArray = [];
     const ships = useSelector(selectShips);
     const camera = useRef(null);
     const controls = useRef(null);
@@ -29,6 +42,12 @@ function Game() {
         new Vector3(10, 10, 10)
     );
     const [cameraMoved, setCameraMoved] = useState(false);
+    if (materialArray.length === 0) {
+        const skyboxImagePaths = createPathStrings(skyboxImage);
+        skyboxImagePaths.forEach((image) =>
+            materialArray.push(useLoader(TextureLoader, image))
+        );
+    }
     useFrame((state, delta) => {
         if (camera?.current && controls?.current && !cameraMoved) {
             camera.current.position.lerp(cameraPosition, delta * 3);
@@ -47,12 +66,29 @@ function Game() {
         setCameraTarget(new Vector3(...ship.position));
         setCameraMoved(false);
     };
+
     return (
         <>
             <Stats></Stats>
             <Stars />
             <ambientLight />
-            <pointLight position={[10, 10, 10]} />
+            <pointLight position={[0, 0, 0]} />
+            <fogExp2 args={[0x202020, 0.001]} attach={'fog'}></fogExp2>
+            <mesh>
+                <boxGeometry
+                    args={[2000, 2000, 2000]}
+                    attach={'geometry'}
+                ></boxGeometry>
+                {materialArray.map((texture, index) => (
+                    <meshBasicMaterial
+                        attach={`material-${index}`}
+                        key={texture.id}
+                        map={texture}
+                        side={BackSide}
+                    ></meshBasicMaterial>
+                ))}
+            </mesh>
+
             {ships.map((ship) => (
                 <Ship
                     key={ship.id}

@@ -74,11 +74,26 @@ function* shipFactory(playerId) {
             width: 0,
         },
         thrusters: {
-            front: {
-                power: 0,
+            aft: {
+                power: {
+                    inUse: 0,
+                    available: 0,
+                },
+                heat: 0,
             },
             retro: {
-                power: 0,
+                power: {
+                    inUse: 0,
+                    available: 0,
+                },
+                heat: 0,
+            },
+            maneuvering: {
+                power: {
+                    inUse: 0,
+                    available: 0,
+                },
+                heat: 0,
             },
         },
     };
