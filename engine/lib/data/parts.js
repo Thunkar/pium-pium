@@ -22,16 +22,6 @@ export const Thrusters = {
             },
         },
         {
-            costs: [{ value: 2, type: Costs.ENERGY }],
-            text: 'Maneuver',
-            effects: {
-                or: [
-                    { name: Effects.TURN_LEFT, value: 1 },
-                    { name: Effects.TURN_RIGHT, value: 1 },
-                ],
-            },
-        },
-        {
             costs: [
                 { value: 2, type: Costs.ENERGY },
                 { value: 2, type: Costs.HEAT },
@@ -39,6 +29,16 @@ export const Thrusters = {
             text: 'Afterburners',
             effects: {
                 or: [{ name: Effects.ACCELERATE, value: 1 }],
+            },
+        },
+        {
+            costs: [{ value: 2, type: Costs.ENERGY }],
+            text: 'Maneuver',
+            effects: {
+                or: [
+                    { name: Effects.TURN_LEFT, value: 1 },
+                    { name: Effects.TURN_RIGHT, value: 1 },
+                ],
             },
         },
     ],
@@ -70,6 +70,32 @@ export const ManeuveringThrusters = {
                     { name: Effects.TURN_LEFT, value: 2 },
                     { name: Effects.TURN_RIGHT, value: 2 },
                 ],
+            },
+        },
+    ],
+};
+
+export const Missiles = {
+    name: 'missile',
+    abilities: [
+        {
+            costs: [
+                {
+                    type: 'energy',
+                    value: 3,
+                },
+                {
+                    type: 'angle',
+                    value: 3,
+                },
+                {
+                    type: 'range',
+                    value: 2,
+                },
+            ],
+            text: 'Barrage',
+            effects: {
+                or: [{ name: 'damage', value: '3 x 2' }],
             },
         },
     ],

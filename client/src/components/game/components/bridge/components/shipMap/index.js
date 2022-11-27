@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActionsMenu } from './components/actionsMenu/index.js';
 import * as SC from './index.styles.js';
-import { Thrusters, ManeuveringThrusters } from 'pium-pium-engine';
+import { Thrusters, ManeuveringThrusters, Missiles } from 'pium-pium-engine';
 
 export function ShipMap({ ship }) {
     const [toggledMenus, setToggledMenus] = useState(0);
@@ -26,20 +26,31 @@ export function ShipMap({ ship }) {
                     onMenuToggled={countToggledMenus}
                     component={Thrusters}
                     status={ship?.thrusters.aft}
+                    disabled={toggledMenus > 0}
                 ></ActionsMenu>
             </SC.Aft>
-            <SC.Port></SC.Port>
+            <SC.Port>
+                <ActionsMenu
+                    onMenuToggled={countToggledMenus}
+                    component={Missiles}
+                    status={ship?.thrusters.aft}
+                    horizontal
+                    disabled={toggledMenus > 0}
+                ></ActionsMenu>
+            </SC.Port>
             <SC.Forward>
                 <ActionsMenu
                     onMenuToggled={countToggledMenus}
                     component={Thrusters}
                     status={ship?.thrusters.retro}
+                    disabled={toggledMenus > 0}
                 ></ActionsMenu>
                 <ActionsMenu
                     onMenuToggled={countToggledMenus}
                     component={ManeuveringThrusters}
                     status={ship?.thrusters.maneuvering}
-                    submenuRadius={4}
+                    submenuRadius={5.5}
+                    disabled={toggledMenus > 0}
                 ></ActionsMenu>
             </SC.Forward>
             <SC.Starboard></SC.Starboard>

@@ -3,35 +3,38 @@ import * as SC from './index.styles.js';
 import { CustomIcon } from '../../../../../../../common/CustomIcon';
 import { RadialMenu } from '../../../../../../../common/RadialMenu';
 
-const abilityGenerator = (ability, overlay, key) => (
-    <SC.Ability overlay={!!overlay} key={key} variant="contained">
-        <SC.Costs>
-            {ability.costs?.map((cost, index) => (
-                <SC.CostContainer key={`cost-${index}`}>
-                    {cost.value}&nbsp;
-                    {<CustomIcon icon={cost.type}></CustomIcon>}
-                </SC.CostContainer>
-            ))}
-        </SC.Costs>
-        <SC.TextContainer>{ability.text}</SC.TextContainer>
-        <SC.Costs>
-            {ability.effects?.or
-                ?.filter((or) => !or.onlyInSubmenu)
-                .map((or, index) => (
-                    <Fragment key={`effect-${index}`}>
-                        <SC.CostContainer>
-                            {or.value}&nbsp;
-                            {<CustomIcon icon={or.name}></CustomIcon>}
-                        </SC.CostContainer>
-                        {index !==
-                            ability.effects.or.filter((or) => !or.onlyInSubmenu)
-                                .length -
-                                1 && <p>|&nbsp;</p>}
-                    </Fragment>
+const abilityGenerator = (ability, overlay, key) => {
+    return (
+        <SC.Ability overlay={!!overlay} key={key} variant="contained">
+            <SC.Costs>
+                {ability.costs?.map((cost, index) => (
+                    <SC.CostContainer key={`cost-${index}`}>
+                        {cost.value}&nbsp;
+                        {<CustomIcon icon={cost.type}></CustomIcon>}
+                    </SC.CostContainer>
                 ))}
-        </SC.Costs>
-    </SC.Ability>
-);
+            </SC.Costs>
+            <SC.TextContainer>{ability.text}</SC.TextContainer>
+            <SC.Costs>
+                {ability.effects?.or
+                    ?.filter((or) => !or.onlyInSubmenu)
+                    .map((or, index) => (
+                        <Fragment key={`effect-${index}`}>
+                            <SC.CostContainer>
+                                {or.value}&nbsp;
+                                {<CustomIcon icon={or.name}></CustomIcon>}
+                            </SC.CostContainer>
+                            {index !==
+                                ability.effects.or.filter(
+                                    (or) => !or.onlyInSubmenu
+                                ).length -
+                                    1 && <p>|&nbsp;</p>}
+                        </Fragment>
+                    ))}
+            </SC.Costs>
+        </SC.Ability>
+    );
+};
 
 const hiearchicalMenuGenerator = (
     abilities,
@@ -49,7 +52,7 @@ const hiearchicalMenuGenerator = (
                 onMenuToggled={onSubmenuOpen}
                 customToggle={abilityGenerator(
                     ability,
-                    overlay,
+                    false,
                     `ability-toggle-${abilityIndex}`
                 )}
                 radius={submenuRadius}
@@ -79,30 +82,39 @@ export const ActionsMenu = ({
     component: { name, abilities },
     status,
     onMenuToggled,
-    overlay,
     radius,
-    startAngle = -90,
+    startAngle = Math.round(-360 / (abilities.length + 2)),
     submenuRadius,
-    submenuStartAngle,
+    submenuStartAngle = 0,
+    horizontal,
+    disabled,
 }) => {
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const [isMenuOpen, setMenuOpen] = useState(false);
-    const [startAngleOffset, setStartAngleOffset] = useState(0);
+    disabled = disabled && !isMenuOpen;
     return (
         <RadialMenu
-            radius={radius}
-            startAngle={
-                startAngle ? startAngle + startAngleOffset : startAngleOffset
-            }
+            radius={submenuOpen ? 0 : radius}
+            startAngle={startAngle}
             onMenuToggled={(isOpen) => {
                 setMenuOpen(isOpen);
                 onMenuToggled(isOpen);
             }}
             customToggle={
                 <SC.ActionToggleContainer>
-                    <SC.PowerIndicator>{status?.power.inUse}</SC.PowerIndicator>
-                    <SC.HeatIndicator>{status?.heat}</SC.HeatIndicator>
-                    <SC.IconButton>
+                    <SC.PowerIndicator
+                        horizontal={horizontal}
+                        disabled={disabled}
+                    >
+                        {status?.power.inUse}
+                    </SC.PowerIndicator>
+                    <SC.HeatIndicator
+                        horizontal={horizontal}
+                        disabled={disabled}
+                    >
+                        {status?.heat}
+                    </SC.HeatIndicator>
+                    <SC.IconButton disabled={disabled}>
                         <CustomIcon
                             icon={isMenuOpen ? 'clear' : name}
                         ></CustomIcon>
@@ -111,7 +123,7 @@ export const ActionsMenu = ({
             }
         >
             {[
-                <SC.Ability key={'powerUp'}>
+                <SC.Ability key={'powerUp'} overlay={submenuOpen}>
                     <SC.Costs>
                         <SC.CostContainer>
                             +1&nbsp;
@@ -119,7 +131,7 @@ export const ActionsMenu = ({
                         </SC.CostContainer>
                     </SC.Costs>
                 </SC.Ability>,
-                <SC.Ability key={'powerDown'}>
+                <SC.Ability key={'powerDown'} overlay={submenuOpen}>
                     <SC.Costs>
                         <SC.CostContainer>
                             -1&nbsp;
@@ -129,7 +141,7 @@ export const ActionsMenu = ({
                 </SC.Ability>,
                 ...hiearchicalMenuGenerator(
                     abilities,
-                    submenuOpen || overlay,
+                    submenuOpen,
                     submenuRadius,
                     submenuStartAngle,
                     setSubmenuOpen

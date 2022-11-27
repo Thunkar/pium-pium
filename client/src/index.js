@@ -9,7 +9,17 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 const container = document.getElementById('root');
 const root = createRoot(container);
 
-const theme = createTheme({});
+const theme = createTheme({
+    palette: {
+        type: 'dark',
+        primary: {
+            main: '#9c9c9c',
+        },
+        secondary: {
+            main: '#3789ff',
+        },
+    },
+});
 
 root.render(
     <React.StrictMode>

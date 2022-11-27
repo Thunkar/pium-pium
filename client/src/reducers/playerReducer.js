@@ -1,5 +1,4 @@
 import { createSlice, createSelector } from '@reduxjs/toolkit';
-import { createShip } from 'pium-pium-engine';
 
 const initialState = {
     playerId: null,

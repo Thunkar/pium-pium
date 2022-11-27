@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { Button, styled as materialStyled } from '@mui/material';
+import { RadialMenu } from '../../../../../../../common/RadialMenu';
 
 export const ActionToggleContainer = styled.div`
     display: flex;
@@ -19,15 +20,18 @@ export const Indicator = styled.div`
     border-radius: 50%;
     background-color: black;
     color: white;
+    filter: ${(props) => (props.disabled ? 'blur(5px)' : 'unset')};
 `;
 
 export const PowerIndicator = styled(Indicator)`
     background-color: #0200bb;
-    left: -1em;
+    left: ${(props) => (props.horizontal ? 'calc(50% - 0.6em)' : '-1em')};
+    top: ${(props) => (props.horizontal ? '-1em' : undefined)};
 `;
 
 export const HeatIndicator = styled(Indicator)`
-    right: -1em;
+    right: ${(props) => (props.horizontal ? 'calc(50% - 0.6em)' : '-1em')};
+    bottom: ${(props) => (props.horizontal ? '-1em' : undefined)};
     background-color: #d50000;
 `;
 
@@ -38,7 +42,7 @@ export const IconButton = materialStyled(Button)`
     width: 2em;
     height: 2em;
     padding: 0.5em;
-    background-color: #2a2a2a;
+    background-color: ${(props) => (props.disabled ? 'unset' : '#2a2a2a')};
     line-height: unset;
     min-width: unset;
     text-transform: unset;
@@ -48,6 +52,12 @@ export const IconButton = materialStyled(Button)`
     & > span {
         margin: 0;
         padding: 0;
+    }
+    overflow: hidden;
+    filter: ${(props) => (props.disabled ? 'blur(5px)' : 'unset')};
+
+    &:hover {
+        background-color: black;
     }
 `;
 
@@ -61,7 +71,11 @@ export const Ability = styled.div`
     border-radius: 10px;
     background-color: #2a2a2a;
     line-height: 1.2em;
-    ${(props) => (props.overlay ? 'filter: blur(4px)' : 'unset')}
+    filter: ${(props) => (props.overlay ? 'blur(4px)' : undefined)};
+    z-index: 1;
+    &:hover {
+        background-color: black;
+    }
 `;
 
 export const Costs = styled.div`

@@ -1,13 +1,14 @@
 import * as SC from './index.styles';
-import { useState, Children, useEffect } from 'react';
+import { useState, Children, useEffect, Fragment } from 'react';
 import { CustomIcon } from '../CustomIcon';
 
 export const RadialMenu = function ({
+    className,
     openIcon,
     closedIcon,
     children,
     customToggle,
-    startAngle = -90,
+    startAngle = Math.round(-360 / children.length),
     rotationAngle = 360,
     radius = 5,
     onMenuToggled,
@@ -15,8 +16,30 @@ export const RadialMenu = function ({
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => onMenuToggled(isOpen), [isOpen]);
+    const angleCalculator = function (index) {
+        let angle = startAngle;
+        let increment = 0;
+        if (children.length > 1) {
+            increment = Math.round(rotationAngle / children.length);
+        }
+        angle += index * increment;
+        return angle;
+    };
+    const childrenArray = Children.toArray(children);
     return (
-        <SC.Wrapper>
+        <SC.Wrapper className={className}>
+            <SC.ChildrenContainer>
+                {childrenArray.map((child, index) => {
+                    return (
+                        <SC.Line
+                            key={`radial-line-${index}`}
+                            angle={(angleCalculator(index) * Math.PI) / 180}
+                            radius={radius}
+                            isOpen={isOpen}
+                        ></SC.Line>
+                    );
+                })}
+            </SC.ChildrenContainer>
             <SC.Toggle onClick={() => setIsOpen(!isOpen)}>
                 {!customToggle ? (
                     <SC.IconButton>
@@ -29,17 +52,11 @@ export const RadialMenu = function ({
                 )}
             </SC.Toggle>
             <SC.ChildrenContainer>
-                {Children.toArray(children).map((child, index) => {
-                    let angle = startAngle;
-                    let increment = 0;
-                    if (children.length > 1) {
-                        increment = Math.round(rotationAngle / children.length);
-                    }
-                    angle += index * increment;
+                {childrenArray.map((child, index) => {
                     return (
                         <SC.RadialChild
                             key={`radial-child-${index}`}
-                            angle={(angle * Math.PI) / 180}
+                            angle={(angleCalculator(index) * Math.PI) / 180}
                             radius={radius}
                             isOpen={isOpen}
                         >
