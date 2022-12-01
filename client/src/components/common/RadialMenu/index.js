@@ -12,6 +12,7 @@ export const RadialMenu = function ({
     rotationAngle = 360,
     radius = 5,
     onMenuToggled,
+    disabled,
 }) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -40,7 +41,7 @@ export const RadialMenu = function ({
                     );
                 })}
             </SC.ChildrenContainer>
-            <SC.Toggle onClick={() => setIsOpen(!isOpen)}>
+            <SC.Toggle onClick={() => !disabled && setIsOpen(!isOpen)}>
                 {!customToggle ? (
                     <SC.IconButton>
                         <CustomIcon

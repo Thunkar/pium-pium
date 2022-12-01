@@ -7,7 +7,6 @@ export const Wrapper = styled.div`
 
 export const Toggle = styled.div`
     display: flex;
-    overflow: hidden;
 `;
 
 export const IconButton = styled.div`
@@ -17,9 +16,7 @@ export const IconButton = styled.div`
     height: 1em;
     width: 1em;
     border-radius: 50%;
-    color: white;
     padding: 8px;
-    background-color: black;
 `;
 
 export const ChildrenContainer = styled.div`
@@ -45,6 +42,7 @@ export const RadialChild = styled.div`
             -50% + ${(props) => (props.isOpen ? props.radius * Math.sin(props.angle) : 0)}em
         )
     );
+    z-index: 10;
 `;
 
 export const Line = styled.div`

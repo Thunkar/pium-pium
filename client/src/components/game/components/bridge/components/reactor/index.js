@@ -1,9 +1,3 @@
-import { selectPlayerShips } from 'pium-pium-engine';
-import { useSelector } from 'react-redux';
-import {
-    selectPlayerId,
-    selectSelectedShip,
-} from '../../../../../../reducers/playerReducer';
 import * as SC from './index.styles';
 
 export function Reactor({ ship }) {
@@ -12,7 +6,9 @@ export function Reactor({ ship }) {
             {ship && (
                 <SC.ReactorCore>
                     <SC.Energy>
-                        {ship?.reactor.remaining}/{ship?.reactor.total}
+                        {ship?.reactor.current}/{ship?.reactor.total}
+                        <br></br>
+                        {ship?.reactor.vented}/{ship?.reactor.maxVent}
                     </SC.Energy>
                 </SC.ReactorCore>
             )}

@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { styled as matStyled } from '@mui/material';
 
 const buttonContainerWidth = 55;
 const positioningMargin = 5;
@@ -27,10 +28,10 @@ export const Aft = styled(ButtonContainer)`
     top: ${buttonContainerWidth + positioningMargin}px;
 `;
 
-export const AftTrapezoid = styled(Aft)`
+export const AftTrapezoid = matStyled(Aft)`
     left: -${trapezoidCorrection}px;
     transform: perspective(10px) rotateY(-3deg);
-    background-color: grey;
+    background-color: ${(props) => props.theme.palette.primary.light};
 `;
 
 export const Port = styled(ButtonContainer)`
@@ -40,9 +41,9 @@ export const Port = styled(ButtonContainer)`
     left: ${buttonContainerWidth + positioningMargin}px;
 `;
 
-export const PortTrapezoid = styled(Port)`
+export const PortTrapezoid = matStyled(Port)`
     top: -${trapezoidCorrection}px;
-    background-color: grey;
+    background-color: ${(props) => props.theme.palette.primary.light};
     transform: perspective(10px) rotateX(3deg);
 `;
 
@@ -54,9 +55,9 @@ export const Forward = styled(ButtonContainer)`
     top: ${buttonContainerWidth + positioningMargin}px;
 `;
 
-export const ForwardTrapezoid = styled(Forward)`
+export const ForwardTrapezoid = matStyled(Forward)`
     right: -${trapezoidCorrection}px;
-    background-color: grey;
+    background-color: ${(props) => props.theme.palette.primary.light};
     transform: perspective(10px) rotateY(3deg);
 `;
 
@@ -67,9 +68,9 @@ export const Starboard = styled(ButtonContainer)`
     left: ${buttonContainerWidth + positioningMargin}px;
 `;
 
-export const StarboardTrapezoid = styled(Starboard)`
+export const StarboardTrapezoid = matStyled(Starboard)`
     bottom: -${trapezoidCorrection}px;
-    background-color: grey;
+    background-color: ${(props) => props.theme.palette.primary.light};
     transform: perspective(10px) rotateX(-3deg);
 `;
 
@@ -80,9 +81,9 @@ export const ShipImage = styled.img`
 
 export const Overlay = styled.div`
     position: absolute;
-    top: -3px;
-    bottom: -3px;
-    left: -3px;
-    right: -3px;
+    top: -10px;
+    bottom: -10px;
+    left: -10px;
+    right: -10px;
     backdrop-filter: blur(4px);
 `;

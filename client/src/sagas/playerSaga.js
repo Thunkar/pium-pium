@@ -1,4 +1,4 @@
-import { createShip, selectPlayerShips, sync } from 'pium-pium-engine';
+import { createShip, sync } from 'pium-pium-engine';
 import { put, select, takeLatest } from 'redux-saga/effects';
 import {
     selectPlayerId,

@@ -5,6 +5,7 @@ import { store } from './store';
 import { Game } from './components/game';
 import './index.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -12,11 +13,16 @@ const root = createRoot(container);
 const theme = createTheme({
     palette: {
         type: 'dark',
+        background: { default: '#000000' },
+        text: { primary: '#ffffff' },
         primary: {
-            main: '#9c9c9c',
+            main: '#343434',
         },
         secondary: {
-            main: '#3789ff',
+            main: '#1412b7',
+        },
+        error: {
+            main: '#d40000',
         },
     },
 });
@@ -25,6 +31,7 @@ root.render(
     <React.StrictMode>
         <Provider store={store}>
             <ThemeProvider theme={theme}>
+                <CssBaseline />
                 <Game />
             </ThemeProvider>
         </Provider>

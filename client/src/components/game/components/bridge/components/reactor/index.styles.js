@@ -22,6 +22,5 @@ export const ReactorCore = styled.div`
 
 export const Energy = styled.div`
     display: flex;
-    color: white;
     font-size: 5em;
 `;

@@ -1,93 +1,66 @@
-import { useState, Fragment } from 'react';
+import { useState } from 'react';
 import * as SC from './index.styles.js';
 import { CustomIcon } from '../../../../../../../common/CustomIcon';
 import { RadialMenu } from '../../../../../../../common/RadialMenu';
+import Ability from './components/ability';
+import { Costs } from 'pium-pium-engine/lib/data/parts.js';
 
-const abilityGenerator = (ability, overlay, key) => {
+const hiearchicalMenuGenerator = (
+    ability,
+    abilityIndex,
+    status,
+    submenuRadius,
+    submenuStartAngle,
+    onSubmenuOpen,
+    onAbilityTriggered
+) => {
+    const energyCost =
+        parseInt(
+            ability.costs?.find((cost) => cost.type === Costs.ENERGY)?.value,
+            10
+        ) || 0;
+    const disabled = status?.power.current < energyCost;
     return (
-        <SC.Ability overlay={!!overlay} key={key} variant="contained">
-            <SC.Costs>
-                {ability.costs?.map((cost, index) => (
-                    <SC.CostContainer key={`cost-${index}`}>
-                        {cost.value}&nbsp;
-                        {<CustomIcon icon={cost.type}></CustomIcon>}
-                    </SC.CostContainer>
-                ))}
-            </SC.Costs>
-            <SC.TextContainer>{ability.text}</SC.TextContainer>
-            <SC.Costs>
-                {ability.effects?.or
-                    ?.filter((or) => !or.onlyInSubmenu)
-                    .map((or, index) => (
-                        <Fragment key={`effect-${index}`}>
-                            <SC.CostContainer>
-                                {or.value}&nbsp;
-                                {<CustomIcon icon={or.name}></CustomIcon>}
-                            </SC.CostContainer>
-                            {index !==
-                                ability.effects.or.filter(
-                                    (or) => !or.onlyInSubmenu
-                                ).length -
-                                    1 && <p>|&nbsp;</p>}
-                        </Fragment>
-                    ))}
-            </SC.Costs>
-        </SC.Ability>
+        <RadialMenu
+            key={`ability-${abilityIndex}`}
+            onMenuToggled={onSubmenuOpen}
+            disabled={disabled}
+            customToggle={
+                <Ability
+                    ability={ability}
+                    status={status}
+                    overlay={false}
+                ></Ability>
+            }
+            radius={submenuRadius}
+            startAngle={submenuStartAngle}
+        >
+            {ability.effects.or.map((or, index) => (
+                <Ability
+                    ability={{
+                        effects: { or: [{ ...or, onlyInSubmenu: false }] },
+                    }}
+                    key={`ability-${abilityIndex}-effect-or-${index}`}
+                    onClick={() => onAbilityTriggered(index)}
+                />
+            ))}
+        </RadialMenu>
     );
 };
 
-const hiearchicalMenuGenerator = (
-    abilities,
-    overlay,
-    submenuRadius,
-    submenuStartAngle,
-    onSubmenuOpen
-) =>
-    abilities?.map((ability, abilityIndex) =>
-        ability.effects?.or?.length === 1 ? (
-            abilityGenerator(ability, overlay, `ability-${abilityIndex}`)
-        ) : (
-            <RadialMenu
-                key={`ability-${abilityIndex}`}
-                onMenuToggled={onSubmenuOpen}
-                customToggle={abilityGenerator(
-                    ability,
-                    false,
-                    `ability-toggle-${abilityIndex}`
-                )}
-                radius={submenuRadius}
-                startAngle={submenuStartAngle}
-            >
-                {ability.effects.or.map((or, index) => (
-                    <SC.Ability
-                        key={`ability-${abilityIndex}-effect-or-${index}`}
-                        variant="contained"
-                    >
-                        <SC.CostContainer>
-                            {or.value}&nbsp;
-                            {<CustomIcon icon={or.name}></CustomIcon>}
-                            {or.text ? (
-                                <SC.DetailTextContainer>
-                                    {or.text}
-                                </SC.DetailTextContainer>
-                            ) : null}
-                        </SC.CostContainer>
-                    </SC.Ability>
-                ))}
-            </RadialMenu>
-        )
-    );
-
 export const ActionsMenu = ({
-    component: { name, abilities },
+    component: { type, abilities },
+    reactor,
     status,
     onMenuToggled,
-    radius,
+    radius = 4.75,
     startAngle = Math.round(-360 / (abilities.length + 2)),
-    submenuRadius,
+    submenuRadius = 6,
     submenuStartAngle = 0,
     horizontal,
     disabled,
+    onPowerRequest,
+    onAbilityTriggered,
 }) => {
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const [isMenuOpen, setMenuOpen] = useState(false);
@@ -100,13 +73,14 @@ export const ActionsMenu = ({
                 setMenuOpen(isOpen);
                 onMenuToggled(isOpen);
             }}
+            disabled={disabled}
             customToggle={
                 <SC.ActionToggleContainer>
                     <SC.PowerIndicator
                         horizontal={horizontal}
                         disabled={disabled}
                     >
-                        {status?.power.inUse}
+                        {status?.power.current}
                     </SC.PowerIndicator>
                     <SC.HeatIndicator
                         horizontal={horizontal}
@@ -116,35 +90,54 @@ export const ActionsMenu = ({
                     </SC.HeatIndicator>
                     <SC.IconButton disabled={disabled}>
                         <CustomIcon
-                            icon={isMenuOpen ? 'clear' : name}
+                            icon={isMenuOpen ? 'clear' : type}
                         ></CustomIcon>
                     </SC.IconButton>
                 </SC.ActionToggleContainer>
             }
         >
             {[
-                <SC.Ability key={'powerUp'} overlay={submenuOpen}>
-                    <SC.Costs>
-                        <SC.CostContainer>
-                            +1&nbsp;
-                            <CustomIcon icon={'energy'}></CustomIcon>
-                        </SC.CostContainer>
-                    </SC.Costs>
-                </SC.Ability>,
-                <SC.Ability key={'powerDown'} overlay={submenuOpen}>
-                    <SC.Costs>
-                        <SC.CostContainer>
-                            -1&nbsp;
-                            <CustomIcon icon={'energy'}></CustomIcon>
-                        </SC.CostContainer>
-                    </SC.Costs>
-                </SC.Ability>,
-                ...hiearchicalMenuGenerator(
-                    abilities,
-                    submenuOpen,
-                    submenuRadius,
-                    submenuStartAngle,
-                    setSubmenuOpen
+                <Ability
+                    key={'powerUp'}
+                    overlay={submenuOpen}
+                    disabled={reactor.current <= 0}
+                    onClick={() => onPowerRequest(1)}
+                    ability={{
+                        effects: { or: [{ type: Costs.ENERGY, value: '+1' }] },
+                    }}
+                />,
+                <Ability
+                    key={'powerDown'}
+                    overlay={submenuOpen}
+                    disabled={
+                        reactor.current >= reactor.total ||
+                        reactor.vented >= reactor.maxVent
+                    }
+                    onClick={() => onPowerRequest(-1)}
+                    ability={{
+                        effects: { or: [{ type: Costs.ENERGY, value: '-1' }] },
+                    }}
+                />,
+                ...abilities?.map((ability, abilityIndex) =>
+                    ability.effects?.or?.length === 1 ? (
+                        <Ability
+                            key={`ability-${abilityIndex}`}
+                            ability={ability}
+                            status={status}
+                            overlay={submenuOpen}
+                            onClick={onAbilityTriggered}
+                        ></Ability>
+                    ) : (
+                        hiearchicalMenuGenerator(
+                            ability,
+                            abilityIndex,
+                            status,
+                            submenuRadius,
+                            submenuStartAngle,
+                            setSubmenuOpen,
+                            onAbilityTriggered
+                        )
+                    )
                 ),
             ]}
         </RadialMenu>

@@ -7,6 +7,8 @@ import {
     actionChannel,
     take,
     spawn,
+    put,
+    all,
 } from 'redux-saga/effects';
 import { send, serverDispatch } from '../../handlers/gameWS.js';
 import {
@@ -28,7 +30,16 @@ import {
     seatPlayerAction,
     unseatPlayerAction,
     gameStarted,
+    Subsystems,
+    powerManagementRequestAction,
+    ventPower,
+    routePower,
+    abilityTriggerRequestAction,
+    Costs,
+    usePower,
+    Effects,
 } from 'pium-pium-engine';
+import { get } from 'lodash-es';
 import {
     uniqueNamesGenerator,
     adjectives,
@@ -42,6 +53,14 @@ const initialPositions = [
     { x: 50, y: 0 },
 ];
 const initialRotations = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+
+const defaultStatus = {
+    power: {
+        current: 0,
+        used: 0,
+    },
+    heat: 0,
+};
 
 function* shipFactory(playerId) {
     const ships = yield select(selectShips);
@@ -58,6 +77,11 @@ function* shipFactory(playerId) {
             style: 'capital',
         })}`,
         playerId: playerId,
+        speed: {
+            direction: 0,
+            magnitude: 0,
+            rotational: 0,
+        },
         position: [
             initialPositions[totalShipNumber].x,
             2,
@@ -66,36 +90,42 @@ function* shipFactory(playerId) {
         rotation: initialRotations[totalShipNumber],
         reactor: {
             total: 10,
-            remaining: 10,
+            current: 10,
+            maxVent: 3,
+            vented: 0,
         },
         deflectors: {
             power: 0,
             position: 0,
             width: 0,
         },
-        thrusters: {
-            aft: {
-                power: {
-                    inUse: 0,
-                    available: 0,
-                },
-                heat: 0,
+        aft: [
+            {
+                type: Subsystems.THRUSTERS,
+                name: 'Main thrusters',
+                status: defaultStatus,
             },
-            retro: {
-                power: {
-                    inUse: 0,
-                    available: 0,
-                },
-                heat: 0,
+            {
+                type: Subsystems.MANEUVERING_THRUSTERS,
+                name: 'Maneuvering thrusters',
+                status: defaultStatus,
             },
-            maneuvering: {
-                power: {
-                    inUse: 0,
-                    available: 0,
-                },
-                heat: 0,
+        ],
+        port: [
+            {
+                type: Subsystems.MISSILE_RACK,
+                name: 'Port missile rack',
+                status: defaultStatus,
             },
-        },
+        ],
+        starboard: [],
+        forward: [
+            {
+                type: Subsystems.THRUSTERS,
+                name: 'Retro thrusters',
+                status: defaultStatus,
+            },
+        ],
     };
 }
 
@@ -142,21 +172,114 @@ function* turnSaga() {
             const currentPlayers = yield select(selectPlayers);
             const nextTurn =
                 currentTurn > currentPlayers.length - 2 ? 0 : currentTurn + 1;
-            yield call(serverDispatch, startTurn({ currentTurn: nextTurn }));
+            yield call(
+                serverDispatch,
+                startTurn({
+                    currentTurn: nextTurn,
+                    playerId: currentPlayers[nextTurn].id,
+                })
+            );
         }
     }
 }
 
 function* seatingSaga() {
-    const seatChannel = yield actionChannel(seatPlayerAction.type);
+    const seatChannel = yield actionChannel(seatPlayerAction);
     while (true) {
         const action = yield take(seatChannel);
         yield call(seatPlayer, action);
     }
 }
 
+function illegalActionHandler() {
+    console.error("Hey! That's illegal");
+}
+
+function* managePower({ payload: { playerId, shipId, subsystem, value } }) {
+    const ship = (yield select(selectPlayerShips, playerId))[shipId];
+    const isVenting = value < 0;
+    const currentPower = get(ship, `${subsystem}.status.power.current`);
+    const usedPower = get(ship, `${subsystem}.status.power.used`);
+    if (
+        isVenting &&
+        currentPower - usedPower > 0 &&
+        ship.reactor.vented < ship.reactor.maxVent &&
+        ship.reactor.current < ship.reactor.total
+    ) {
+        yield call(
+            serverDispatch,
+            ventPower({ shipId, subsystem, value: -value })
+        );
+    } else if (!isVenting && ship.reactor.current > 0) {
+        yield call(serverDispatch, routePower({ shipId, subsystem, value }));
+    } else {
+        yield call(illegalActionHandler);
+    }
+}
+
+function evaluateCosts(ship, subsystem, costs, target) {
+    const sideEffects = [];
+    const systemStatus = get(ship, `${subsystem}`);
+    const areCostsMet = costs.every((cost) => {
+        switch (cost.type) {
+            case Costs.ENERGY: {
+                sideEffects.push(
+                    usePower({ shipId: ship.id, subsystem, value: cost.value })
+                );
+                return systemStatus.power.current <= cost.value;
+            }
+            default: {
+                return true;
+            }
+        }
+    });
+    return { areCostsMet, sideEffects };
+}
+
+function applyEffects(ship, subsystem, effects, effectIndex, target) {
+    const toApply = effectIndex ? [effects.or[effectIndex]] : effects.or;
+    const sideEffects = [];
+    toApply.forEach((effect) => {
+        switch (effect.type) {
+            case Effects.ACCELERATE: {
+                effects.push();
+            }
+        }
+    });
+    return sideEffects;
+}
+
+function* triggerAbility({
+    payload: { playerId, shipId, subsystem, ability, target, effectIndex },
+}) {
+    const ship = (yield select(selectPlayerShips, playerId))[shipId];
+    const { areCostsMet, sideEffects } = yield call(
+        evaluateCosts,
+        ship,
+        subsystem,
+        ability.costs,
+        target
+    );
+    if (!areCostsMet) {
+        yield call(illegalActionHandler);
+        return;
+    }
+    yield all(sideEffects.map((action) => put(action)));
+    const effects = yield call(
+        applyEffects,
+        ship,
+        subsystem,
+        ability.effects,
+        effectIndex,
+        target
+    );
+    yield all(effects.map((action) => put(action)));
+}
+
 export const gameSaga = function* () {
-    yield takeEvery(unseatPlayerAction.type, unseatPlayer);
-    yield takeEvery(syncRequestAction.type, syncPlayer);
+    yield takeEvery(unseatPlayerAction, unseatPlayer);
+    yield takeEvery(syncRequestAction, syncPlayer);
+    yield takeEvery(powerManagementRequestAction, managePower);
+    yield takeEvery(abilityTriggerRequestAction, triggerAbility);
     yield fork(seatingSaga);
 };

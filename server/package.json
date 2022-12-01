@@ -14,10 +14,10 @@
         "@reduxjs/toolkit": "^1.9.0",
         "dotenv": "^16.0.3",
         "fastify": "^4.9.2",
+        "lodash-es": "^4.17.21",
         "pium-pium-engine": "../engine",
         "redux-saga": "^1.2.1",
         "unique-names-generator": "^4.7.1",
         "uuid": "^9.0.0"
-    },
-    "devDependencies": {}
+    }
 }

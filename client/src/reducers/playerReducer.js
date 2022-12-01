@@ -18,7 +18,11 @@ const playerSlice = createSlice({
     },
 });
 
+// Actions
+
 export const { setPlayerId, setSelectedShip } = playerSlice.actions;
+
+// Selectors
 
 export const selectPlayer = (state) => state.player;
 export const selectPlayerId = createSelector(

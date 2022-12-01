@@ -2,6 +2,9 @@ import * as toolkitRaw from '@reduxjs/toolkit/dist/index.js';
 const { createSlice, createSelector, createAction } =
     toolkitRaw.default ?? toolkitRaw;
 
+import { get, set } from 'lodash-es';
+import { SHIP_SIDES } from '../index.mjs';
+
 const PLAYER_TURN_TIME_SECONDS = 30;
 
 const gameSlice = createSlice({
@@ -35,6 +38,16 @@ const gameSlice = createSlice({
             draft.ships[action.payload.ship.id] = action.payload.ship;
         },
         startTurn: (draft, action) => {
+            Object.keys(draft.ships).forEach((shipId) => {
+                if (shipId.startsWith(action.payload.playerId)) {
+                    draft.ships[shipId].reactor.vented = 0;
+                    Object.values(SHIP_SIDES).forEach((side) => {
+                        draft.ships[shipId][side].forEach((system) => {
+                            system.power.used = 0;
+                        });
+                    });
+                }
+            });
             draft.currentTurn = action.payload.currentTurn;
             draft.currentTimer = PLAYER_TURN_TIME_SECONDS;
         },
@@ -43,6 +56,45 @@ const gameSlice = createSlice({
         },
         gameStarted: (draft) => {
             draft.isRunning = true;
+        },
+        routePower: (draft, action) => {
+            const { shipId, value, subsystem } = action.payload;
+            draft.ships[shipId].reactor.current -= value;
+            const currentPower = get(
+                draft.ships[shipId],
+                `${subsystem}.status.power.current`
+            );
+            set(
+                draft.ships[shipId],
+                `${subsystem}.status.power.current`,
+                currentPower + value
+            );
+        },
+        ventPower: (draft, action) => {
+            const { shipId, value, subsystem } = action.payload;
+            draft.ships[shipId].reactor.current += value;
+            draft.ships[shipId].reactor.vented += value;
+            const currentPower = get(
+                draft.ships[shipId],
+                `${subsystem}.status.power.current`
+            );
+            set(
+                draft.ships[shipId],
+                `${subsystem}.status.power.current`,
+                currentPower - value
+            );
+        },
+        usePower: (draft, action) => {
+            const { shipId, value, subsystem } = action.payload;
+            const usedPower = get(
+                draft.ships[shipId],
+                `${subsystem}.status.power.current`
+            );
+            set(
+                draft.ships[shipId],
+                `${subsystem}.status.power.used`,
+                usedPower + value
+            );
         },
     },
 });
@@ -57,13 +109,27 @@ export const {
     startTurn,
     timerEllapsed,
     gameStarted,
+    routePower,
+    ventPower,
+    usePower,
 } = gameSlice.actions;
 export const syncRequestAction = createAction('game/syncRequest');
 export const seatPlayerAction = createAction('game/seatPlayer');
 export const unseatPlayerAction = createAction('game/unseatPlayer');
+export const powerManagementRequestAction = createAction(
+    'game/powerManagementRequest'
+);
+export const abilityTriggerRequestAction = createAction(
+    'game/abilityTriggerRequest'
+);
 
 export const actionsByType = Object.values(gameSlice.actions)
-    .concat([syncRequestAction, seatPlayerAction, unseatPlayerAction])
+    .concat([
+        syncRequestAction,
+        seatPlayerAction,
+        unseatPlayerAction,
+        powerManagementRequestAction,
+    ])
     .reduce((previous, current) => {
         return { ...previous, ...{ [current.type]: current } };
     }, {});

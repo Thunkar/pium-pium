@@ -17,6 +17,7 @@ import {
     selectShips,
 } from 'pium-pium-engine';
 import { Vector3, TextureLoader, BackSide } from 'three';
+import PlayerList from './components/playerList';
 
 let skyboxImage = 'milky_way';
 
@@ -32,7 +33,7 @@ function createPathStrings(filename) {
     return pathStings;
 }
 
-function Game() {
+function Scene() {
     const materialArray = [];
     const ships = useSelector(selectShips);
     const camera = useRef(null);
@@ -116,27 +117,11 @@ function Game() {
 }
 
 export function Board() {
-    const players = useSelector(selectPlayers);
-    const currentTurn = useSelector(selectCurrentTurn);
-    const currentTimer = useSelector(selectCurrentTimer);
-
     return (
         <SC.Container>
-            <SC.PlayerListContainer>
-                {players.map((player) => (
-                    <SC.Player
-                        selected={player.id === players?.[currentTurn]?.id}
-                        key={player.id}
-                    >
-                        {player.id}{' '}
-                        {player.id === players?.[currentTurn]?.id
-                            ? ` - ${currentTimer}`
-                            : ''}
-                    </SC.Player>
-                ))}
-            </SC.PlayerListContainer>
+            <PlayerList></PlayerList>
             <Canvas>
-                <Game></Game>
+                <Scene></Scene>
             </Canvas>
         </SC.Container>
     );

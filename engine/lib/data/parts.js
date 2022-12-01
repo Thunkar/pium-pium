@@ -1,6 +1,8 @@
 export const Costs = {
     ENERGY: 'energy',
     HEAT: 'heat',
+    RANGE: 'range',
+    ANGLE: 'angle',
 };
 
 export const Effects = {
@@ -9,94 +11,109 @@ export const Effects = {
     TURN_RIGHT_THEN_STOP: 'turn-right-then-stop',
     TURN_LEFT_THEN_STOP: 'turn-left-then-stop',
     ACCELERATE: 'accelerate',
+    DAMAGE: 'damage',
 };
 
-export const Thrusters = {
-    name: 'thrusters',
-    abilities: [
-        {
-            costs: [{ value: 2, type: Costs.ENERGY }],
-            text: 'Burn',
-            effects: {
-                or: [{ name: Effects.ACCELERATE, value: 1 }],
+export const Subsystems = {
+    THRUSTERS: 'thrusters',
+    MANEUVERING_THRUSTERS: 'maneuvering_thrusters',
+    MISSILE_RACK: 'missile_rack',
+};
+
+export const Parts = {
+    [Subsystems.THRUSTERS]: {
+        type: Subsystems.THRUSTERS,
+        abilities: [
+            {
+                costs: [{ value: 2, type: Costs.ENERGY }],
+                text: 'Burn',
+                effects: {
+                    or: [{ type: Effects.ACCELERATE, value: 1 }],
+                },
             },
-        },
-        {
-            costs: [
-                { value: 2, type: Costs.ENERGY },
-                { value: 2, type: Costs.HEAT },
-            ],
-            text: 'Afterburners',
-            effects: {
-                or: [{ name: Effects.ACCELERATE, value: 1 }],
-            },
-        },
-        {
-            costs: [{ value: 2, type: Costs.ENERGY }],
-            text: 'Maneuver',
-            effects: {
-                or: [
-                    { name: Effects.TURN_LEFT, value: 1 },
-                    { name: Effects.TURN_RIGHT, value: 1 },
+            {
+                costs: [
+                    { value: 2, type: Costs.ENERGY },
+                    { value: 2, type: Costs.HEAT },
                 ],
+                text: 'Afterburners',
+                effects: {
+                    or: [{ type: Effects.ACCELERATE, value: 1 }],
+                },
             },
-        },
-    ],
-};
+            {
+                costs: [{ value: 2, type: Costs.ENERGY }],
+                text: 'Maneuver',
+                effects: {
+                    or: [
+                        { type: Effects.TURN_LEFT, value: 1 },
+                        { type: Effects.TURN_RIGHT, value: 1 },
+                    ],
+                },
+            },
+        ],
+    },
+    [Subsystems.MANEUVERING_THRUSTERS]: {
+        type: Subsystems.MANEUVERING_THRUSTERS,
+        abilities: [
+            {
+                costs: [{ value: 1, type: Costs.ENERGY }],
+                text: 'Maneuver',
+                effects: {
+                    or: [
+                        {
+                            type: Effects.TURN_RIGHT_THEN_STOP,
+                            value: 1,
+                            text: 'then stop',
+                            onlyInSubmenu: true,
+                        },
+                        {
+                            type: Effects.TURN_RIGHT,
+                            value: 1,
+                            onlyInSubmenu: true,
+                        },
+                        {
+                            type: Effects.TURN_LEFT,
+                            value: 1,
+                            onlyInSubmenu: true,
+                        },
+                        {
+                            type: Effects.TURN_LEFT_THEN_STOP,
+                            value: 1,
+                            text: 'then stop',
+                            onlyInSubmenu: true,
+                        },
 
-export const ManeuveringThrusters = {
-    name: 'maneuvering_thrusters',
-    abilities: [
-        {
-            costs: [{ value: 1, type: Costs.ENERGY }],
-            text: 'Maneuver',
-            effects: {
-                or: [
+                        { type: Effects.TURN_LEFT, value: 2 },
+                        { type: Effects.TURN_RIGHT, value: 2 },
+                    ],
+                },
+            },
+        ],
+    },
+    [Subsystems.MISSILE_RACK]: {
+        type: Subsystems.MISSILE_RACK,
+        abilities: [
+            {
+                costs: [
                     {
-                        name: 'turn-right-then-stop',
-                        value: 1,
-                        text: 'then stop',
-                        onlyInSubmenu: true,
+                        type: Costs.ENERGY,
+                        value: 3,
                     },
-                    { name: Effects.TURN_RIGHT, value: 1, onlyInSubmenu: true },
-                    { name: Effects.TURN_LEFT, value: 1, onlyInSubmenu: true },
                     {
-                        name: 'turn-left-then-stop',
-                        value: 1,
-                        text: 'then stop',
-                        onlyInSubmenu: true,
+                        type: Costs.ANGLE,
+                        value: 3,
                     },
-
-                    { name: Effects.TURN_LEFT, value: 2 },
-                    { name: Effects.TURN_RIGHT, value: 2 },
+                    {
+                        type: Costs.RANGE,
+                        value: 2,
+                    },
                 ],
+                text: 'Barrage',
+                effects: {
+                    or: [{ type: Effects.DAMAGE, value: '3 x 2' }],
+                },
             },
-        },
-    ],
-};
-
-export const Missiles = {
-    name: 'missile',
-    abilities: [
-        {
-            costs: [
-                {
-                    type: 'energy',
-                    value: 3,
-                },
-                {
-                    type: 'angle',
-                    value: 3,
-                },
-                {
-                    type: 'range',
-                    value: 2,
-                },
-            ],
-            text: 'Barrage',
-            effects: {
-                or: [{ name: 'damage', value: '3 x 2' }],
-            },
-        },
-    ],
+        ],
+    },
 };

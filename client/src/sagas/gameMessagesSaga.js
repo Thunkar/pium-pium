@@ -7,9 +7,14 @@ import {
     put,
     select,
     take,
+    takeEvery,
 } from 'redux-saga/effects';
-import { buffers, eventChannel } from 'redux-saga';
-import { actionsByType, syncRequestAction } from 'pium-pium-engine';
+import { buffers, eventChannel, channel } from 'redux-saga';
+import {
+    actionsByType,
+    powerManagementRequestAction,
+    syncRequestAction,
+} from 'pium-pium-engine';
 import { v4 as uuidv4 } from 'uuid';
 import { selectPlayerId, setPlayerId } from '../reducers/playerReducer';
 
@@ -63,11 +68,14 @@ function* keepAlive(ws) {
     }
 }
 
-function* sendMessage(ws, message) {
-    if (typeof message === 'object') {
-        message = JSON.stringify(message);
+function* sendMessage(ws, channel) {
+    while (true) {
+        let message = yield take(channel);
+        if (typeof message === 'object') {
+            message = JSON.stringify(message);
+        }
+        ws.send(message);
     }
-    ws.send(message);
 }
 
 export function* handleMessageEvent(messageEvent) {
@@ -83,7 +91,7 @@ export function* handleMessageEvent(messageEvent) {
     }
 }
 
-function* wsConnection() {
+function* wsConnection(txChannel) {
     while (true) {
         let playerId = yield select(selectPlayerId);
         if (!playerId) {
@@ -92,19 +100,21 @@ function* wsConnection() {
         }
         const ws = new WebSocket(`${wssURL}?playerId=${playerId}`);
 
-        const channel = createWebsocketChannel(ws);
+        const rxChannel = createWebsocketChannel(ws);
 
         try {
             let keepAliveTask = null;
+            let txTask = null;
             let isAlive = true;
 
             while (isAlive) {
-                const event = yield take(channel);
+                const event = yield take(rxChannel);
 
                 if (event.type === 'OPEN') {
                     console.debug('Websocket connected');
                     keepAliveTask = yield fork(keepAlive, ws);
-                    yield call(sendMessage, ws, syncRequestAction());
+                    txTask = yield fork(sendMessage, ws, txChannel);
+                    yield put(syncRequestAction());
                 } else if (event.type === 'MESSAGE') {
                     yield call(handleMessageEvent, event.messageEvent);
                 } else {
@@ -115,13 +125,15 @@ function* wsConnection() {
             if (keepAliveTask) {
                 console.debug('Websocket disconnected');
                 yield cancel(keepAliveTask);
+                yield cancel(txTask);
             } else {
                 // Socket failed to connect. Wait before retrying
                 yield delay(WebsocketFailedConnectionBackoff);
             }
         } finally {
             if (yield cancelled()) {
-                channel.close();
+                rxChannel.close();
+                txChannel.close();
             }
         }
     }
@@ -129,5 +141,15 @@ function* wsConnection() {
 
 export default function* pushMessages() {
     console.debug('Starting backend ws connection');
-    yield fork(wsConnection);
+    const txChannel = channel();
+    yield fork(wsConnection, txChannel);
+    yield takeEvery(
+        (action) => {
+            console.log(action.type);
+            return action.type.endsWith('Request');
+        },
+        function* sendThroughWS(action) {
+            yield put(txChannel, action);
+        }
+    );
 }
