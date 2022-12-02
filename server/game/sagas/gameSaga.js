@@ -7,7 +7,6 @@ import {
     actionChannel,
     take,
     spawn,
-    put,
     all,
 } from 'redux-saga/effects';
 import { send, serverDispatch } from '../../handlers/gameWS.js';
@@ -38,6 +37,14 @@ import {
     Costs,
     usePower,
     Effects,
+    Parts,
+    SHIP_SIDES,
+    SIDE_TO_ROTATION_MAP,
+    setShipDirectionalSpeed,
+    setShipPosition,
+    overheat,
+    ventHeat,
+    ventHeatRequestAction,
 } from 'pium-pium-engine';
 import { get } from 'lodash-es';
 import {
@@ -45,6 +52,7 @@ import {
     adjectives,
     animals,
 } from 'unique-names-generator';
+import Vec3 from 'vec3';
 
 const initialPositions = [
     { x: 0, y: -50 },
@@ -78,15 +86,14 @@ function* shipFactory(playerId) {
         })}`,
         playerId: playerId,
         speed: {
-            direction: 0,
-            magnitude: 0,
+            directional: new Vec3(0, 0, 0).toArray(),
             rotational: 0,
         },
-        position: [
+        position: new Vec3(
             initialPositions[totalShipNumber].x,
             2,
-            initialPositions[totalShipNumber].y,
-        ],
+            initialPositions[totalShipNumber].y
+        ).toArray(),
         rotation: initialRotations[totalShipNumber],
         reactor: {
             total: 10,
@@ -95,7 +102,7 @@ function* shipFactory(playerId) {
             vented: 0,
         },
         deflectors: {
-            power: 0,
+            status: defaultStatus,
             position: 0,
             width: 0,
         },
@@ -217,9 +224,22 @@ function* managePower({ payload: { playerId, shipId, subsystem, value } }) {
     }
 }
 
+function* manageHeat({ payload: { playerId, shipId, subsystem, value } }) {
+    const ship = (yield select(selectPlayerShips, playerId))[shipId];
+    const currentHeat = get(ship, `${subsystem}.status.heat`);
+    if (currentHeat > 0 && ship.reactor.vented < ship.reactor.maxVent) {
+        yield call(
+            serverDispatch,
+            ventHeat({ shipId, subsystem, value: -value })
+        );
+    } else {
+        yield call(illegalActionHandler);
+    }
+}
+
 function evaluateCosts(ship, subsystem, costs, target) {
     const sideEffects = [];
-    const systemStatus = get(ship, `${subsystem}`);
+    const systemStatus = get(ship, `${subsystem}.status`);
     const areCostsMet = costs.every((cost) => {
         switch (cost.type) {
             case Costs.ENERGY: {
@@ -227,6 +247,12 @@ function evaluateCosts(ship, subsystem, costs, target) {
                     usePower({ shipId: ship.id, subsystem, value: cost.value })
                 );
                 return systemStatus.power.current <= cost.value;
+            }
+            case Costs.HEAT: {
+                sideEffects.push(
+                    overheat({ shipId: ship.id, subsystem, value: cost.value })
+                );
+                return true;
             }
             default: {
                 return true;
@@ -242,7 +268,36 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
     toApply.forEach((effect) => {
         switch (effect.type) {
             case Effects.ACCELERATE: {
-                effects.push();
+                const thrustAngle =
+                    SIDE_TO_ROTATION_MAP[
+                        Object.values(SHIP_SIDES).find((side) =>
+                            subsystem.includes(side)
+                        )
+                    ] + ship.rotation;
+                const thrustVector = new Vec3(
+                    -effect.value * Math.sin(thrustAngle),
+                    0,
+                    -effect.value * Math.cos(thrustAngle)
+                );
+                const newSpeed = new Vec3(ship.speed.directional)
+                    .add(thrustVector)
+                    .toArray();
+                const newPosition = new Vec3(ship.position)
+                    .add(thrustVector)
+                    .toArray();
+                sideEffects.push(
+                    setShipDirectionalSpeed({
+                        shipId: ship.id,
+                        speed: newSpeed,
+                    })
+                );
+                sideEffects.push(
+                    setShipPosition({
+                        shipId: ship.id,
+                        position: newPosition,
+                    })
+                );
+                break;
             }
         }
     });
@@ -250,9 +305,11 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
 }
 
 function* triggerAbility({
-    payload: { playerId, shipId, subsystem, ability, target, effectIndex },
+    payload: { playerId, shipId, subsystem, abilityIndex, target, effectIndex },
 }) {
     const ship = (yield select(selectPlayerShips, playerId))[shipId];
+    const systemType = get(ship, `${subsystem}.type`);
+    const ability = Parts[systemType].abilities[abilityIndex];
     const { areCostsMet, sideEffects } = yield call(
         evaluateCosts,
         ship,
@@ -264,7 +321,7 @@ function* triggerAbility({
         yield call(illegalActionHandler);
         return;
     }
-    yield all(sideEffects.map((action) => put(action)));
+    yield all(sideEffects.map((action) => call(serverDispatch, action)));
     const effects = yield call(
         applyEffects,
         ship,
@@ -273,13 +330,14 @@ function* triggerAbility({
         effectIndex,
         target
     );
-    yield all(effects.map((action) => put(action)));
+    yield all(effects.map((action) => call(serverDispatch, action)));
 }
 
 export const gameSaga = function* () {
     yield takeEvery(unseatPlayerAction, unseatPlayer);
     yield takeEvery(syncRequestAction, syncPlayer);
     yield takeEvery(powerManagementRequestAction, managePower);
+    yield takeEvery(ventHeatRequestAction, manageHeat);
     yield takeEvery(abilityTriggerRequestAction, triggerAbility);
     yield fork(seatingSaga);
 };

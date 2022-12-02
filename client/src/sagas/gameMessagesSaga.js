@@ -144,10 +144,7 @@ export default function* pushMessages() {
     const txChannel = channel();
     yield fork(wsConnection, txChannel);
     yield takeEvery(
-        (action) => {
-            console.log(action.type);
-            return action.type.endsWith('Request');
-        },
+        (action) => action.type.endsWith('Request'),
         function* sendThroughWS(action) {
             yield put(txChannel, action);
         }

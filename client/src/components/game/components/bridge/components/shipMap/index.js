@@ -5,6 +5,7 @@ import {
     Parts,
     powerManagementRequestAction,
     abilityTriggerRequestAction,
+    ventHeatRequestAction,
 } from 'pium-pium-engine';
 import { useDispatch } from 'react-redux';
 
@@ -25,12 +26,22 @@ export function ShipMap({ ship }) {
         );
     };
 
-    const onAbilityTriggered = function (subsystem, ability, effectIndex) {
+    const onVentHeatRequest = function (subsystem, value) {
+        dispatch(
+            ventHeatRequestAction({
+                subsystem,
+                shipId: ship.id,
+                value,
+            })
+        );
+    };
+
+    const onAbilityTriggered = function (subsystem, abilityIndex, effectIndex) {
         dispatch(
             abilityTriggerRequestAction({
                 subsystem,
                 shipId: ship.id,
-                ability,
+                abilityIndex,
                 effectIndex,
             })
         );
@@ -56,10 +67,13 @@ export function ShipMap({ ship }) {
                         onPowerRequest={(value) =>
                             onPowerRequest(`aft[${index}]`, value)
                         }
-                        onAbilityTriggered={(ability, effectIndex) =>
+                        onVentHeatRequest={(value) =>
+                            onVentHeatRequest(`aft[${index}]`, value)
+                        }
+                        onAbilityTriggered={(abilityIndex, effectIndex) =>
                             onAbilityTriggered(
                                 `aft[${index}]`,
-                                ability,
+                                abilityIndex,
                                 effectIndex
                             )
                         }
@@ -78,6 +92,16 @@ export function ShipMap({ ship }) {
                         onPowerRequest={(value) =>
                             onPowerRequest(`port[${index}]`, value)
                         }
+                        onVentHeatRequest={(value) =>
+                            onVentHeatRequest(`port[${index}]`, value)
+                        }
+                        onAbilityTriggered={(abilityIndex, effectIndex) =>
+                            onAbilityTriggered(
+                                `port[${index}]`,
+                                abilityIndex,
+                                effectIndex
+                            )
+                        }
                     ></ActionsMenu>
                 ))}
             </SC.Port>
@@ -93,6 +117,16 @@ export function ShipMap({ ship }) {
                         onPowerRequest={(value) =>
                             onPowerRequest(`forward[${index}]`, value)
                         }
+                        onVentHeatRequest={(value) =>
+                            onVentHeatRequest(`forward[${index}]`, value)
+                        }
+                        onAbilityTriggered={(abilityIndex, effectIndex) =>
+                            onAbilityTriggered(
+                                `forward[${index}]`,
+                                abilityIndex,
+                                effectIndex
+                            )
+                        }
                     ></ActionsMenu>
                 ))}
             </SC.Forward>
@@ -107,6 +141,16 @@ export function ShipMap({ ship }) {
                         disabled={toggledMenus > 0}
                         onPowerRequest={(value) =>
                             onPowerRequest(`starboard[${index}]`, value)
+                        }
+                        onVentHeatRequest={(value) =>
+                            onVentHeatRequest(`starboard[${index}]`, value)
+                        }
+                        onAbilityTriggered={(abilityIndex, effectIndex) =>
+                            onAbilityTriggered(
+                                `starboard[${index}]`,
+                                abilityIndex,
+                                effectIndex
+                            )
                         }
                     ></ActionsMenu>
                 ))}

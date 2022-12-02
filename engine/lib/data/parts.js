@@ -38,7 +38,7 @@ export const Parts = {
                 ],
                 text: 'Afterburners',
                 effects: {
-                    or: [{ type: Effects.ACCELERATE, value: 1 }],
+                    or: [{ type: Effects.ACCELERATE, value: 2 }],
                 },
             },
             {

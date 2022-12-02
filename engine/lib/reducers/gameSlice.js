@@ -84,6 +84,19 @@ const gameSlice = createSlice({
                 currentPower - value
             );
         },
+        ventHeat: (draft, action) => {
+            const { shipId, value, subsystem } = action.payload;
+            draft.ships[shipId].reactor.vented += value;
+            const currentPower = get(
+                draft.ships[shipId],
+                `${subsystem}.status.heat`
+            );
+            set(
+                draft.ships[shipId],
+                `${subsystem}.status.heat`,
+                currentPower - value
+            );
+        },
         usePower: (draft, action) => {
             const { shipId, value, subsystem } = action.payload;
             const usedPower = get(
@@ -95,6 +108,26 @@ const gameSlice = createSlice({
                 `${subsystem}.status.power.used`,
                 usedPower + value
             );
+        },
+        overheat: (draft, action) => {
+            const { shipId, value, subsystem } = action.payload;
+            const currentHeat = get(
+                draft.ships[shipId],
+                `${subsystem}.status.heat`
+            );
+            set(
+                draft.ships[shipId],
+                `${subsystem}.status.heat`,
+                currentHeat + value
+            );
+        },
+        setShipDirectionalSpeed: (draft, action) => {
+            const { shipId, speed } = action.payload;
+            draft.ships[shipId].speed.directional = speed;
+        },
+        setShipPosition: (draft, action) => {
+            const { shipId, position } = action.payload;
+            draft.ships[shipId].position = position;
         },
     },
 });
@@ -111,7 +144,11 @@ export const {
     gameStarted,
     routePower,
     ventPower,
+    ventHeat,
     usePower,
+    setShipDirectionalSpeed,
+    setShipPosition,
+    overheat,
 } = gameSlice.actions;
 export const syncRequestAction = createAction('game/syncRequest');
 export const seatPlayerAction = createAction('game/seatPlayer');
@@ -122,7 +159,7 @@ export const powerManagementRequestAction = createAction(
 export const abilityTriggerRequestAction = createAction(
     'game/abilityTriggerRequest'
 );
-
+export const ventHeatRequestAction = createAction('game/ventHeatRequest');
 export const actionsByType = Object.values(gameSlice.actions)
     .concat([
         syncRequestAction,

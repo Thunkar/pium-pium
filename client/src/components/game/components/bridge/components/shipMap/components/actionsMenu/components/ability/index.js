@@ -3,16 +3,16 @@ import { Fragment } from 'react';
 import { CustomIcon } from '../../../../../../../../../common/CustomIcon';
 import * as SC from './index.styles';
 
-const Ability = function ({ ability, status, overlay, onClick }) {
+const Ability = function ({ ability, status, overlay, disabled, onClick }) {
     const energyCost =
         parseInt(
             ability.costs?.find((cost) => cost.type === Costs.ENERGY)?.value,
             10
         ) || 0;
-    const disabled = status?.power.current < energyCost;
+    disabled = disabled || status?.power.current < energyCost;
     const onAbilityTriggered = () => {
         if (!disabled && onClick) {
-            onClick(ability);
+            onClick();
         }
     };
     return (

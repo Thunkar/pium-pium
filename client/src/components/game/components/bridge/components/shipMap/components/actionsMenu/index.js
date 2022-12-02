@@ -35,13 +35,15 @@ const hiearchicalMenuGenerator = (
             radius={submenuRadius}
             startAngle={submenuStartAngle}
         >
-            {ability.effects.or.map((or, index) => (
+            {ability.effects.or.map((or, effectIndex) => (
                 <Ability
                     ability={{
                         effects: { or: [{ ...or, onlyInSubmenu: false }] },
                     }}
-                    key={`ability-${abilityIndex}-effect-or-${index}`}
-                    onClick={() => onAbilityTriggered(index)}
+                    key={`ability-${abilityIndex}-effect-or-${effectIndex}`}
+                    onClick={() =>
+                        onAbilityTriggered(abilityIndex, effectIndex)
+                    }
                 />
             ))}
         </RadialMenu>
@@ -53,7 +55,7 @@ export const ActionsMenu = ({
     reactor,
     status,
     onMenuToggled,
-    radius = 4.75,
+    radius = 6,
     startAngle = Math.round(-360 / (abilities.length + 2)),
     submenuRadius = 6,
     submenuStartAngle = 0,
@@ -61,6 +63,7 @@ export const ActionsMenu = ({
     disabled,
     onPowerRequest,
     onAbilityTriggered,
+    onVentHeatRequest,
 }) => {
     const [submenuOpen, setSubmenuOpen] = useState(false);
     const [isMenuOpen, setMenuOpen] = useState(false);
@@ -118,6 +121,17 @@ export const ActionsMenu = ({
                         effects: { or: [{ type: Costs.ENERGY, value: '-1' }] },
                     }}
                 />,
+                <Ability
+                    key={'ventHeat'}
+                    overlay={submenuOpen}
+                    disabled={status.heat === 0}
+                    onClick={() => onVentHeatRequest(-1)}
+                    ability={{
+                        effects: {
+                            or: [{ type: Costs.HEAT, value: '-1' }],
+                        },
+                    }}
+                />,
                 ...abilities?.map((ability, abilityIndex) =>
                     ability.effects?.or?.length === 1 ? (
                         <Ability
@@ -125,7 +139,7 @@ export const ActionsMenu = ({
                             ability={ability}
                             status={status}
                             overlay={submenuOpen}
-                            onClick={onAbilityTriggered}
+                            onClick={() => onAbilityTriggered(abilityIndex)}
                         ></Ability>
                     ) : (
                         hiearchicalMenuGenerator(
