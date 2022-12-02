@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -10,13 +10,10 @@ import {
 } from '@react-three/drei';
 import Ship from './components/ship';
 import { useSelector } from 'react-redux';
-import {
-    selectCurrentTimer,
-    selectCurrentTurn,
-    selectPlayers,
-    selectShips,
-} from 'pium-pium-engine';
+import { selectShips } from 'pium-pium-engine';
 import { Vector3, TextureLoader, BackSide } from 'three';
+import { EffectComposer } from '@react-three/postprocessing';
+
 import PlayerList from './components/playerList';
 
 let skyboxImage = 'milky_way';
@@ -72,9 +69,6 @@ function Scene() {
         <>
             <Stats></Stats>
             <Stars />
-            <ambientLight />
-            <pointLight position={[0, 0, 0]} />
-            <fogExp2 args={[0x202020, 0.001]} attach={'fog'}></fogExp2>
             <mesh>
                 <boxGeometry
                     args={[2000, 2000, 2000]}
@@ -93,15 +87,13 @@ function Scene() {
             {ships.map((ship) => (
                 <Ship
                     key={ship.id}
-                    rotation-y={ship.rotation}
-                    position={ship.position}
-                    name={ship.name}
+                    ship={ship}
                     onClick={() => onShipClicked(ship)}
                 ></Ship>
             ))}
             <Plane rotation-x={-Math.PI / 2} args={[100, 100, 100, 100]}>
                 <meshBasicMaterial
-                    opacity={0.15}
+                    opacity={0.01}
                     color="darkgrey"
                     transparent
                 />
