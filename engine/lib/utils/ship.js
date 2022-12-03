@@ -11,3 +11,5 @@ export const SIDE_TO_ROTATION_MAP = {
     [SHIP_SIDES.STARBOARD]: Math.PI / 2,
     [SHIP_SIDES.FORWARD]: 0,
 };
+
+export const ROTATION_INCREMENT = Math.PI / 4;

@@ -1,21 +1,44 @@
-import { useGLTF, Billboard, Text, useHelper } from '@react-three/drei';
-import { animated, config, useSpring, useSpringRef } from '@react-spring/three';
-import { EffectComposer, SelectiveBloom } from '@react-three/postprocessing';
+import { useGLTF, Billboard, Text } from '@react-three/drei';
+import { animated, config, to, useSpring } from '@react-spring/three';
+import { Fragment } from 'react';
+import { configs } from 'eslint-plugin-prettier';
 
-import { KernelSize } from 'postprocessing';
-
-import { Fragment, useRef } from 'react';
-
-export default function Ship({ ship, onClick }) {
+export default function Ship({
+    ship,
+    onClick,
+    setBloomLightRef,
+    setBloomGeometryRef,
+}) {
     const { nodes, materials } = useGLTF('assets/ship.gltf');
-    const { position, rotation } = useSpring({
+    const { position, billboardPosition, rotation } = useSpring({
         position: ship.position,
+        billboardPosition: [
+            ship.position[0],
+            ship.position[1] + 1,
+            ship.position[2],
+        ],
         rotation: ship.rotation,
         config: {
             mass: 8,
             tension: 200,
             friction: 80,
         },
+    });
+    const { motorIntensity, motorDecay } = useSpring({
+        from: {
+            motorIntensity: 0.1,
+            motorDecay: 3,
+        },
+        to: {
+            motorIntensity: 3,
+            motorDecay: 2,
+        },
+        config: {
+            mass: 8,
+            tension: 200,
+            friction: 80,
+        },
+        loop: { reverse: true },
     });
     const motors = new Array(4).fill(null).map((value, index) => ({
         scale: [0.25, 0.05, 0.02],
@@ -24,71 +47,83 @@ export default function Ship({ ship, onClick }) {
             -0.25 * (index % 2 ? -1 : 1),
             -1.43,
         ],
-        color: 'grey',
+        color: 'white',
     }));
-    const motorRef = useRef([]);
-    const lightRef = useRef([]);
     return (
-        <animated.group
-            position={position}
-            rotation-y={rotation}
-            dispose={null}
-            onClick={onClick}
-        >
-            <Billboard
-                follow={true}
-                lockX={false}
-                lockY={false}
-                lockZ={false}
-                rotation={[Math.PI / 2, 0, 0]}
-                position={[0, 1, 0]}
+        <>
+            <animated.mesh position={billboardPosition}>
+                <Billboard
+                    follow={true}
+                    lockX={false}
+                    lockY={false}
+                    lockZ={false}
+                >
+                    <Text fontSize={0.3}>{ship.name}</Text>
+                </Billboard>
+            </animated.mesh>
+            <animated.group
+                position={position}
+                rotation-y={rotation.to({
+                    range: [
+                        0,
+                        Math.PI / 4,
+                        Math.PI / 2,
+                        (3 * Math.PI) / 4,
+                        Math.PI,
+                        (5 * Math.PI) / 4,
+                        (3 * Math.PI) / 2,
+                        (7 * Math.PI) / 4,
+                        0,
+                    ],
+                    output: [
+                        0,
+                        Math.PI / 4,
+                        Math.PI / 2,
+                        (3 * Math.PI) / 4,
+                        Math.PI,
+                        (5 * Math.PI) / 4,
+                        (3 * Math.PI) / 2,
+                        (7 * Math.PI) / 4,
+                        0,
+                    ],
+                })}
+                dispose={null}
+                onClick={onClick}
             >
-                <Text fontSize={0.3}>{ship.name}</Text>
-            </Billboard>
-            <mesh
-                geometry={nodes['Corvette-F3'].geometry}
-                material={materials['SF_Corvette_F3.001']}
-                rotation={[Math.PI / 2, 0, 0]}
-                scale={0.001}
-                castShadow
-                receiveShadow
-            />{' '}
-            <EffectComposer autoclear={false}>
-                <SelectiveBloom
-                    lights={lightRef.current}
-                    selection={motorRef.current}
-                    selectionLayer={10}
-                    intensity={3}
-                    luminanceThreshold={0.15}
-                    luminanceSmoothing={0.025}
-                    blurPass={null}
-                    kernelSize={KernelSize.LARGE}
+                <mesh
+                    geometry={nodes['Corvette-F3'].geometry}
+                    material={materials['SF_Corvette_F3.001']}
+                    rotation={[Math.PI / 2, 0, 0]}
+                    scale={0.001}
+                    castShadow
+                    receiveShadow
                 />
-            </EffectComposer>
-            {motors.map((motor, index) => (
-                <Fragment key={`motor-${index}`}>
-                    <animated.ambientLight
-                        color="white"
-                        ref={(el) => (lightRef.current[index] = el)}
-                        position={[
-                            motor.position[0],
-                            motor.position[1],
-                            motor.position[2] - 1,
-                        ]}
-                        intensity={0.5}
-                        castShadow={true}
-                    ></animated.ambientLight>
-                    <mesh
-                        ref={(el) => (motorRef.current[index] = el)}
-                        position={motor.position}
-                        scale={motor.scale}
-                    >
-                        <boxGeometry attach="geometry" />
-                        <meshStandardMaterial color="grey" attach="material" />
-                    </mesh>
-                </Fragment>
-            ))}
-        </animated.group>
+                {motors.map((motor, index) => (
+                    <Fragment key={`motor-${index}`}>
+                        <mesh
+                            ref={setBloomGeometryRef}
+                            position={motor.position}
+                            scale={motor.scale}
+                        >
+                            <boxGeometry attach="geometry" />
+                            <meshStandardMaterial
+                                color={motor.color}
+                                attach="material"
+                            />
+                        </mesh>
+                    </Fragment>
+                ))}
+                <animated.pointLight
+                    color={motors[0].color}
+                    ref={setBloomLightRef}
+                    position={[0, 0, -2]}
+                    intensity={motorIntensity}
+                    decay={motorDecay}
+                    distance={1.5}
+                    castShadow
+                ></animated.pointLight>
+            </animated.group>
+        </>
     );
 }
 

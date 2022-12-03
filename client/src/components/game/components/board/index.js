@@ -12,7 +12,8 @@ import Ship from './components/ship';
 import { useSelector } from 'react-redux';
 import { selectShips } from 'pium-pium-engine';
 import { Vector3, TextureLoader, BackSide } from 'three';
-import { EffectComposer } from '@react-three/postprocessing';
+import { EffectComposer, SelectiveBloom } from '@react-three/postprocessing';
+import { KernelSize } from 'postprocessing';
 
 import PlayerList from './components/playerList';
 
@@ -65,10 +66,21 @@ function Scene() {
         setCameraMoved(false);
     };
 
+    const whiteBloomLightRef = useRef([]);
+    const whiteBloomGeometryRef = useRef([]);
+
+    const setWhiteBloomLightRef = (el) => {
+        whiteBloomLightRef.current.push(el);
+    };
+    const setWhiteBloomGeometryRef = (el) => {
+        whiteBloomGeometryRef.current.push(el);
+    };
+
     return (
         <>
             <Stats></Stats>
             <Stars />
+            <ambientLight color="white" intensity={0.5} castShadow={true} />
             <mesh>
                 <boxGeometry
                     args={[2000, 2000, 2000]}
@@ -89,6 +101,8 @@ function Scene() {
                     key={ship.id}
                     ship={ship}
                     onClick={() => onShipClicked(ship)}
+                    setBloomLightRef={setWhiteBloomLightRef}
+                    setBloomGeometryRef={setWhiteBloomGeometryRef}
                 ></Ship>
             ))}
             <Plane rotation-x={-Math.PI / 2} args={[100, 100, 100, 100]}>
@@ -104,6 +118,18 @@ function Scene() {
                 onStart={() => setCameraMoved(true)}
                 ref={controls}
             />
+            <EffectComposer autoclear={false}>
+                <SelectiveBloom
+                    lights={whiteBloomLightRef.current}
+                    selection={whiteBloomGeometryRef.current}
+                    selectionLayer={10}
+                    intensity={3}
+                    luminanceThreshold={0.15}
+                    luminanceSmoothing={0.025}
+                    blurPass={null}
+                    kernelSize={KernelSize.LARGE}
+                />
+            </EffectComposer>
         </>
     );
 }

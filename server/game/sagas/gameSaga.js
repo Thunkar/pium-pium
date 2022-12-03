@@ -45,6 +45,9 @@ import {
     overheat,
     ventHeat,
     ventHeatRequestAction,
+    setShipRotationalSpeed,
+    setShipRotation,
+    ROTATION_INCREMENT,
 } from 'pium-pium-engine';
 import { get } from 'lodash-es';
 import {
@@ -148,7 +151,7 @@ function* seatPlayer({ payload: { playerId } }) {
     }
     const players = yield select(selectPlayers);
     const isGameRunning = yield select(selectIsRunning);
-    if (players.length > 1 && !isGameRunning) {
+    if (players.length > 0 && !isGameRunning) {
         yield call(startGame);
     }
 }
@@ -246,7 +249,10 @@ function evaluateCosts(ship, subsystem, costs, target) {
                 sideEffects.push(
                     usePower({ shipId: ship.id, subsystem, value: cost.value })
                 );
-                return systemStatus.power.current <= cost.value;
+                return (
+                    systemStatus.power.current >= cost.value &&
+                    systemStatus.power.used < systemStatus.power.current
+                );
             }
             case Costs.HEAT: {
                 sideEffects.push(
@@ -263,7 +269,8 @@ function evaluateCosts(ship, subsystem, costs, target) {
 }
 
 function applyEffects(ship, subsystem, effects, effectIndex, target) {
-    const toApply = effectIndex ? [effects.or[effectIndex]] : effects.or;
+    const toApply =
+        effectIndex !== undefined ? [effects.or[effectIndex]] : effects.or;
     const sideEffects = [];
     toApply.forEach((effect) => {
         switch (effect.type) {
@@ -295,6 +302,58 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                     setShipPosition({
                         shipId: ship.id,
                         position: newPosition,
+                    })
+                );
+                break;
+            }
+            case Effects.TURN_LEFT: {
+                const angleDelta = effect.value * ROTATION_INCREMENT;
+                sideEffects.push(
+                    setShipRotationalSpeed({
+                        shipId: ship.id,
+                        speed: ship.speed.rotational + angleDelta,
+                    })
+                );
+                sideEffects.push(
+                    setShipRotation({
+                        shipId: ship.id,
+                        rotation: (ship.rotation + angleDelta) % (2 * Math.PI),
+                    })
+                );
+                break;
+            }
+            case Effects.TURN_LEFT_THEN_STOP: {
+                const angleDelta = effect.value * ROTATION_INCREMENT;
+                sideEffects.push(
+                    setShipRotation({
+                        shipId: ship.id,
+                        rotation: (ship.rotation + angleDelta) % (2 * Math.PI),
+                    })
+                );
+                break;
+            }
+            case Effects.TURN_RIGHT: {
+                const angleDelta = effect.value * ROTATION_INCREMENT;
+                sideEffects.push(
+                    setShipRotationalSpeed({
+                        shipId: ship.id,
+                        speed: ship.speed.rotational - angleDelta,
+                    })
+                );
+                sideEffects.push(
+                    setShipRotation({
+                        shipId: ship.id,
+                        rotation: (ship.rotation - angleDelta) % (2 * Math.PI),
+                    })
+                );
+                break;
+            }
+            case Effects.TURN_RIGHT_THEN_STOP: {
+                const angleDelta = effect.value * ROTATION_INCREMENT;
+                sideEffects.push(
+                    setShipRotation({
+                        shipId: ship.id,
+                        rotation: ship.rotation - angleDelta,
                     })
                 );
                 break;

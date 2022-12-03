@@ -1,11 +1,11 @@
 import * as toolkitRaw from '@reduxjs/toolkit/dist/index.js';
 const { createSlice, createSelector, createAction } =
     toolkitRaw.default ?? toolkitRaw;
-
 import { get, set } from 'lodash-es';
 import { SHIP_SIDES } from '../index.mjs';
+import Vec3 from 'vec3';
 
-const PLAYER_TURN_TIME_SECONDS = 30;
+const PLAYER_TURN_TIME_SECONDS = 10;
 
 const gameSlice = createSlice({
     name: 'game',
@@ -29,7 +29,7 @@ const gameSlice = createSlice({
         removePlayer: (draft, action) => {
             delete draft.players[action.payload.playerId];
             Object.keys(draft.ships).forEach((shipId) => {
-                if (shipId.startsWith(action.payload.playerId)) {
+                if (draft.ships[shipId].playerId === action.payload.playerId) {
                     delete draft.ships[shipId];
                 }
             });
@@ -39,13 +39,24 @@ const gameSlice = createSlice({
         },
         startTurn: (draft, action) => {
             Object.keys(draft.ships).forEach((shipId) => {
-                if (shipId.startsWith(action.payload.playerId)) {
+                if (draft.ships[shipId].playerId === action.payload.playerId) {
                     draft.ships[shipId].reactor.vented = 0;
                     Object.values(SHIP_SIDES).forEach((side) => {
                         draft.ships[shipId][side].forEach((system) => {
-                            system.power.used = 0;
+                            system.status.power.used = 0;
                         });
                     });
+                    const currentPosition = new Vec3(
+                        draft.ships[shipId].position
+                    );
+                    draft.ships[shipId].position = currentPosition
+                        .add(new Vec3(draft.ships[shipId].speed.directional))
+                        .toArray();
+                    const currentRotation = draft.ships[shipId].rotation;
+                    draft.ships[shipId].rotation =
+                        (currentRotation +
+                            draft.ships[shipId].speed.rotational) %
+                        (Math.PI * 2);
                 }
             });
             draft.currentTurn = action.payload.currentTurn;
@@ -129,6 +140,14 @@ const gameSlice = createSlice({
             const { shipId, position } = action.payload;
             draft.ships[shipId].position = position;
         },
+        setShipRotationalSpeed: (draft, action) => {
+            const { shipId, speed } = action.payload;
+            draft.ships[shipId].speed.rotational = speed;
+        },
+        setShipRotation: (draft, action) => {
+            const { shipId, rotation } = action.payload;
+            draft.ships[shipId].rotation = rotation;
+        },
     },
 });
 
@@ -149,6 +168,8 @@ export const {
     setShipDirectionalSpeed,
     setShipPosition,
     overheat,
+    setShipRotationalSpeed,
+    setShipRotation,
 } = gameSlice.actions;
 export const syncRequestAction = createAction('game/syncRequest');
 export const seatPlayerAction = createAction('game/seatPlayer');
