@@ -102,6 +102,7 @@ export function ShipMap({ ship }) {
                                 effectIndex
                             )
                         }
+                        horizontal
                     ></ActionsMenu>
                 ))}
             </SC.Port>
@@ -152,6 +153,7 @@ export function ShipMap({ ship }) {
                                 effectIndex
                             )
                         }
+                        horizontal
                     ></ActionsMenu>
                 ))}
             </SC.Starboard>

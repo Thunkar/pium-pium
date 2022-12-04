@@ -25,7 +25,8 @@
         "redux-saga": "^1.2.1",
         "styled-components": "^5.3.6",
         "three": "^0.146.0",
-        "uuid": "^9.0.0"
+        "uuid": "^9.0.0",
+        "vec3": "^0.1.7"
     },
     "scripts": {
         "start": "react-scripts start",

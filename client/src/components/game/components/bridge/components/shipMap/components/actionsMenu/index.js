@@ -85,6 +85,12 @@ export const ActionsMenu = ({
                     >
                         {status?.power.current}
                     </SC.PowerIndicator>
+                    <SC.UsedPowerIndicator
+                        horizontal={horizontal}
+                        disabled={disabled}
+                    >
+                        {status?.power.used}
+                    </SC.UsedPowerIndicator>
                     <SC.HeatIndicator
                         horizontal={horizontal}
                         disabled={disabled}

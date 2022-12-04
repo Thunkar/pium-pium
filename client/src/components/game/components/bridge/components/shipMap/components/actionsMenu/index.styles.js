@@ -26,6 +26,12 @@ export const PowerIndicator = matStyled(Indicator)`
     top: ${(props) => (props.horizontal ? '-1em' : undefined)};
 `;
 
+export const UsedPowerIndicator = matStyled(Indicator)`
+    background-color: ${(props) => props.theme.palette.warning.main};
+    left: ${(props) => (props.horizontal ? 'calc(50% + 0.55em)' : '-0.55em')};
+    top: ${(props) => (props.horizontal ? '-0.65em' : '1.5em')};
+`;
+
 export const HeatIndicator = matStyled(Indicator)`
     right: ${(props) => (props.horizontal ? 'calc(50% - 0.6em)' : '-1em')};
     bottom: ${(props) => (props.horizontal ? '-1em' : undefined)};

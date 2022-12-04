@@ -48,6 +48,9 @@ import {
     setShipRotationalSpeed,
     setShipRotation,
     ROTATION_INCREMENT,
+    applyThrustVector,
+    ALLOWED_AXES,
+    applyRotation,
 } from 'pium-pium-engine';
 import { get } from 'lodash-es';
 import {
@@ -89,7 +92,13 @@ function* shipFactory(playerId) {
         })}`,
         playerId: playerId,
         speed: {
-            directional: new Vec3(0, 0, 0).toArray(),
+            directional: ALLOWED_AXES.slice(0, 4).reduce(
+                (previous, current) => ({
+                    ...previous,
+                    [current.toFixed(5)]: 0,
+                }),
+                {}
+            ),
             rotational: 0,
         },
         position: new Vec3(
@@ -280,18 +289,15 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                         Object.values(SHIP_SIDES).find((side) =>
                             subsystem.includes(side)
                         )
-                    ] + ship.rotation;
-                const thrustVector = new Vec3(
-                    -effect.value * Math.sin(thrustAngle),
-                    0,
-                    -effect.value * Math.cos(thrustAngle)
+                    ] +
+                    ship.rotation +
+                    Math.PI;
+                const { newSpeed, newPosition } = applyThrustVector(
+                    ship.speed.directional,
+                    ship.position,
+                    thrustAngle,
+                    effect.value
                 );
-                const newSpeed = new Vec3(ship.speed.directional)
-                    .add(thrustVector)
-                    .toArray();
-                const newPosition = new Vec3(ship.position)
-                    .add(thrustVector)
-                    .toArray();
                 sideEffects.push(
                     setShipDirectionalSpeed({
                         shipId: ship.id,
@@ -308,52 +314,74 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
             }
             case Effects.TURN_LEFT: {
                 const angleDelta = effect.value * ROTATION_INCREMENT;
+                const { newRotation, newRotationalSpeed } = applyRotation(
+                    ship.speed.rotational,
+                    ship.rotation,
+                    angleDelta
+                );
                 sideEffects.push(
                     setShipRotationalSpeed({
                         shipId: ship.id,
-                        speed: ship.speed.rotational + angleDelta,
+                        speed: newRotationalSpeed,
                     })
                 );
                 sideEffects.push(
                     setShipRotation({
                         shipId: ship.id,
-                        rotation: (ship.rotation + angleDelta) % (2 * Math.PI),
+                        rotation: newRotation,
                     })
                 );
                 break;
             }
             case Effects.TURN_LEFT_THEN_STOP: {
                 const angleDelta = effect.value * ROTATION_INCREMENT;
+                const { newRotation } = applyRotation(
+                    ship.speed.rotational,
+                    ship.rotation,
+                    angleDelta,
+                    true
+                );
                 sideEffects.push(
                     setShipRotation({
                         shipId: ship.id,
-                        rotation: (ship.rotation + angleDelta) % (2 * Math.PI),
+                        rotation: newRotation,
                     })
                 );
                 break;
             }
             case Effects.TURN_RIGHT: {
-                const angleDelta = effect.value * ROTATION_INCREMENT;
+                const angleDelta = -effect.value * ROTATION_INCREMENT;
+                const { newRotation, newRotationalSpeed } = applyRotation(
+                    ship.speed.rotational,
+                    ship.rotation,
+                    angleDelta
+                );
                 sideEffects.push(
                     setShipRotationalSpeed({
                         shipId: ship.id,
-                        speed: ship.speed.rotational - angleDelta,
+                        speed: newRotationalSpeed,
                     })
                 );
                 sideEffects.push(
                     setShipRotation({
                         shipId: ship.id,
-                        rotation: (ship.rotation - angleDelta) % (2 * Math.PI),
+                        rotation: newRotation,
                     })
                 );
                 break;
             }
             case Effects.TURN_RIGHT_THEN_STOP: {
-                const angleDelta = effect.value * ROTATION_INCREMENT;
+                const angleDelta = -effect.value * ROTATION_INCREMENT;
+                const { newRotation } = applyRotation(
+                    ship.speed.rotational,
+                    ship.rotation,
+                    angleDelta,
+                    true
+                );
                 sideEffects.push(
                     setShipRotation({
                         shipId: ship.id,
-                        rotation: ship.rotation - angleDelta,
+                        rotation: newRotation,
                     })
                 );
                 break;

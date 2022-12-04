@@ -2,7 +2,7 @@ import * as toolkitRaw from '@reduxjs/toolkit/dist/index.js';
 const { createSlice, createSelector, createAction } =
     toolkitRaw.default ?? toolkitRaw;
 import { get, set } from 'lodash-es';
-import { SHIP_SIDES } from '../index.mjs';
+import { SHIP_SIDES, addSpeeds } from '../utils/ship.js';
 import Vec3 from 'vec3';
 
 const PLAYER_TURN_TIME_SECONDS = 10;
@@ -50,13 +50,11 @@ const gameSlice = createSlice({
                         draft.ships[shipId].position
                     );
                     draft.ships[shipId].position = currentPosition
-                        .add(new Vec3(draft.ships[shipId].speed.directional))
+                        .add(addSpeeds(draft.ships[shipId].speed.directional))
                         .toArray();
                     const currentRotation = draft.ships[shipId].rotation;
                     draft.ships[shipId].rotation =
-                        (currentRotation +
-                            draft.ships[shipId].speed.rotational) %
-                        (Math.PI * 2);
+                        currentRotation + draft.ships[shipId].speed.rotational;
                 }
             });
             draft.currentTurn = action.payload.currentTurn;
@@ -112,7 +110,7 @@ const gameSlice = createSlice({
             const { shipId, value, subsystem } = action.payload;
             const usedPower = get(
                 draft.ships[shipId],
-                `${subsystem}.status.power.current`
+                `${subsystem}.status.power.used`
             );
             set(
                 draft.ships[shipId],

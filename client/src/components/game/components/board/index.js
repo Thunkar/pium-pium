@@ -79,8 +79,9 @@ function Scene() {
     return (
         <>
             <Stats></Stats>
-            <Stars />
-            <ambientLight color="white" intensity={0.5} castShadow={true} />
+            <Stars saturation={10} />
+            <fogExp2 color={'black'} density={0.0015} attach="fog" />
+            <ambientLight color="white" intensity={0.5} />
             <mesh>
                 <boxGeometry
                     args={[2000, 2000, 2000]}
@@ -122,9 +123,9 @@ function Scene() {
                 <SelectiveBloom
                     lights={whiteBloomLightRef.current}
                     selection={whiteBloomGeometryRef.current}
-                    selectionLayer={10}
+                    selectionLayer={1}
                     intensity={3}
-                    luminanceThreshold={0.15}
+                    luminanceThreshold={0.75}
                     luminanceSmoothing={0.025}
                     blurPass={null}
                     kernelSize={KernelSize.LARGE}

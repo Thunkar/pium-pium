@@ -24,19 +24,17 @@ export default function Ship({
             friction: 80,
         },
     });
-    const { motorIntensity, motorDecay } = useSpring({
+    const { motorIntensity } = useSpring({
         from: {
-            motorIntensity: 0.1,
-            motorDecay: 3,
+            motorIntensity: 2,
         },
         to: {
-            motorIntensity: 3,
-            motorDecay: 2,
+            motorIntensity: 4,
         },
         config: {
             mass: 8,
-            tension: 200,
-            friction: 80,
+            tension: 250,
+            friction: 50,
         },
         loop: { reverse: true },
     });
@@ -63,33 +61,16 @@ export default function Ship({
             </animated.mesh>
             <animated.group
                 position={position}
-                rotation-y={rotation.to({
-                    range: [
-                        0,
-                        Math.PI / 4,
-                        Math.PI / 2,
-                        (3 * Math.PI) / 4,
-                        Math.PI,
-                        (5 * Math.PI) / 4,
-                        (3 * Math.PI) / 2,
-                        (7 * Math.PI) / 4,
-                        0,
-                    ],
-                    output: [
-                        0,
-                        Math.PI / 4,
-                        Math.PI / 2,
-                        (3 * Math.PI) / 4,
-                        Math.PI,
-                        (5 * Math.PI) / 4,
-                        (3 * Math.PI) / 2,
-                        (7 * Math.PI) / 4,
-                        0,
-                    ],
-                })}
+                rotation-y={rotation}
                 dispose={null}
                 onClick={onClick}
             >
+                <pointLight
+                    color="white"
+                    position={[0, 1, -1]}
+                    intensity={0.7}
+                    castShadow
+                ></pointLight>
                 <mesh
                     geometry={nodes['Corvette-F3'].geometry}
                     material={materials['SF_Corvette_F3.001']}
@@ -118,7 +99,7 @@ export default function Ship({
                     ref={setBloomLightRef}
                     position={[0, 0, -2]}
                     intensity={motorIntensity}
-                    decay={motorDecay}
+                    decay={1.5}
                     distance={1.5}
                     castShadow
                 ></animated.pointLight>
