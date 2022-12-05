@@ -185,11 +185,13 @@ export const Overlay = styled.div`
 export const VerticalDivider = matStyled('div')`
     height: 1px;
     width: 100%;
+    visibility: ${(props) => (props.visible ? 'visible' : 'hidden')};
     background-color: ${(props) => props.theme.palette.primary.light};
 `;
 
 export const HorizontalDivider = matStyled('div')`
     width: 1px;
     height: 100%;
+    visibility: ${(props) => (props.visible ? 'visible' : 'hidden')};
     background-color: ${(props) => props.theme.palette.primary.light};
 `;

@@ -116,10 +116,11 @@ export function ShipMap({ ship }) {
                                     )
                                 }
                             ></ActionsMenu>
-                            {index !== ship?.aft.length - 1 &&
-                                !toggledMenus && (
-                                    <SC.VerticalDivider></SC.VerticalDivider>
-                                )}
+                            {index !== ship?.aft.length - 1 && (
+                                <SC.VerticalDivider
+                                    visible={!toggledMenus}
+                                ></SC.VerticalDivider>
+                            )}
                         </Fragment>
                     ))}
                 </SC.Aft>
@@ -151,10 +152,11 @@ export function ShipMap({ ship }) {
                                 }
                                 horizontal
                             ></ActionsMenu>
-                            {index !== ship?.port.length - 1 &&
-                                !toggledMenus && (
-                                    <SC.HorizontalDivider></SC.HorizontalDivider>
-                                )}
+                            {index !== ship?.port.length - 1 && (
+                                <SC.HorizontalDivider
+                                    visible={!toggledMenus}
+                                ></SC.HorizontalDivider>
+                            )}
                         </Fragment>
                     ))}
                 </SC.Port>
@@ -187,10 +189,11 @@ export function ShipMap({ ship }) {
                                     )
                                 }
                             ></ActionsMenu>
-                            {index !== ship?.forward.length - 1 &&
-                                !toggledMenus && (
-                                    <SC.VerticalDivider></SC.VerticalDivider>
-                                )}
+                            {index !== ship?.forward.length - 1 && (
+                                <SC.VerticalDivider
+                                    visible={!toggledMenus}
+                                ></SC.VerticalDivider>
+                            )}
                         </Fragment>
                     ))}
                 </SC.Forward>
@@ -224,10 +227,11 @@ export function ShipMap({ ship }) {
                                 }
                                 horizontal
                             ></ActionsMenu>
-                            {index !== ship?.starboard.length - 1 &&
-                                !toggledMenus && (
-                                    <SC.HorizontalDivider></SC.HorizontalDivider>
-                                )}
+                            {index !== ship?.starboard.length - 1 && (
+                                <SC.HorizontalDivider
+                                    visible={!toggledMenus}
+                                ></SC.HorizontalDivider>
+                            )}
                         </Fragment>
                     ))}
                 </SC.Starboard>
