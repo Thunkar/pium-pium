@@ -96,6 +96,7 @@ const gameSlice = createSlice({
         ventHeat: (draft, action) => {
             const { shipId, value, subsystem } = action.payload;
             draft.ships[shipId].reactor.vented += value;
+            draft.ships[shipId].reactor.heat -= value;
             const currentPower = get(
                 draft.ships[shipId],
                 `${subsystem}.status.heat`
@@ -120,6 +121,7 @@ const gameSlice = createSlice({
         },
         overheat: (draft, action) => {
             const { shipId, value, subsystem } = action.payload;
+            draft.ships[shipId].reactor.heat += value;
             const currentHeat = get(
                 draft.ships[shipId],
                 `${subsystem}.status.heat`

@@ -18,6 +18,11 @@ export const Subsystems = {
     THRUSTERS: 'thrusters',
     MANEUVERING_THRUSTERS: 'maneuvering_thrusters',
     MISSILE_RACK: 'missile_rack',
+    BALLISTIC_RACK: 'ballistic_rack',
+    LASER: 'laser',
+    DISRUPTOR: 'disruptor',
+    PLASMA_CANNONS: 'plasma_cannons',
+    RAILGUN: 'railgun',
 };
 
 export const Parts = {
@@ -115,5 +120,25 @@ export const Parts = {
                 },
             },
         ],
+    },
+    [Subsystems.BALLISTIC_RACK]: {
+        type: Subsystems.BALLISTIC_RACK,
+        abilities: [],
+    },
+    [Subsystems.LASER]: {
+        type: Subsystems.LASER,
+        abilities: [],
+    },
+    [Subsystems.DISRUPTOR]: {
+        type: Subsystems.DISRUPTOR,
+        abilities: [],
+    },
+    [Subsystems.RAILGUN]: {
+        type: Subsystems.RAILGUN,
+        abilities: [],
+    },
+    [Subsystems.PLASMA_CANNONS]: {
+        type: Subsystems.PLASMA_CANNONS,
+        abilities: [],
     },
 };

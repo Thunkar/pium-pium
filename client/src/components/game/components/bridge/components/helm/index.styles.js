@@ -3,6 +3,7 @@ import { styled as matStyled } from '@mui/material';
 
 export const Container = styled.div`
     display: flex;
+    position: relative;
     align-items: center;
 `;
 
@@ -51,4 +52,38 @@ export const SpeedLine = styled.line`
     stroke: ${(props) => (props.color ? props.color : 'white')};
     stroke-dasharray: ${(props) =>
         props.dasharray ? props.dasharray : undefined};
+    transition: all 0.3s;
+`;
+
+export const RotationalSpeedIndicator = matStyled('div')`
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    top: 0;
+    align-items: center;
+    justify-content: flex-start;
+    height: 3.5rem;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    padding: 0 0.25rem;
+
+    background: radial-gradient(
+        circle,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0) 50%,
+        rgb(40 40 40) 70%
+    );
+
+    border: solid 2px ${(props) => props.theme.palette.primary.light};
+
+    & > span {
+        margin: 0 0.2rem;
+    }
+`;
+
+export const RotationalSpeedIndicatorRight = matStyled(
+    RotationalSpeedIndicator
+)`
+    right: 0;
+    justify-content: flex-end;
 `;

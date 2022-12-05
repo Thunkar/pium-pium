@@ -1,7 +1,13 @@
 import * as SC from './index.styles';
-import { addSpeeds, vectorFromMagnitudeAndAngle } from 'pium-pium-engine';
+import {
+    addSpeeds,
+    ROTATION_INCREMENT,
+    vectorFromMagnitudeAndAngle,
+} from 'pium-pium-engine';
 import { useMemo } from 'react';
 import Vec3 from 'vec3';
+import { Typography } from '@mui/material';
+import { CustomIcon } from '../../../../../common/CustomIcon';
 
 export function Helm({ ship }) {
     const speedLines = useMemo(() => {
@@ -17,11 +23,25 @@ export function Helm({ ship }) {
                     y2={-sumVector.z * 10}
                 ></SC.SpeedLine>
             );
+            const rotationVector = vectorFromMagnitudeAndAngle(
+                5,
+                ship.rotation
+            );
+            const rotationLine = (
+                <SC.SpeedLine
+                    key="rotation"
+                    color={'grey'}
+                    x1={0}
+                    y1={0}
+                    x2={-rotationVector.x * 10}
+                    y2={-rotationVector.z * 10}
+                ></SC.SpeedLine>
+            );
             const ordered = Object.keys(ship.speed.directional)
                 .filter((angle) => ship.speed.directional[angle])
                 .sort(
                     (a, b) =>
-                        ship.speed.directional[a] - ship.speed.directional[b]
+                        ship.speed.directional[b] - ship.speed.directional[a]
                 )
                 .map((angle) => ({
                     magnitude: ship.speed.directional[angle],
@@ -30,11 +50,13 @@ export function Helm({ ship }) {
             const result = [];
             let accumulated = new Vec3(0, 0, 0);
             for (const speed of ordered) {
-                const startPoint = accumulated;
-                const finishPoint = vectorFromMagnitudeAndAngle(
+                const startPoint = accumulated.clone();
+                const velocity = vectorFromMagnitudeAndAngle(
                     speed.magnitude,
                     speed.angle
-                ).add(accumulated);
+                );
+                accumulated.add(velocity);
+                const finishPoint = velocity.add(startPoint);
                 result.push(
                     <SC.SpeedLine
                         key={speed.angle}
@@ -45,14 +67,32 @@ export function Helm({ ship }) {
                         y2={-finishPoint.z * 10}
                     ></SC.SpeedLine>
                 );
-                accumulated = accumulated.add(finishPoint);
             }
-
-            return result.concat([sumSpeedLine]);
+            return result.concat([rotationLine, sumSpeedLine]);
         }
-    }, [ship?.speed?.directional]);
+    }, [ship?.speed?.directional, ship?.rotation]);
     return (
         <SC.Container>
+            {ship?.speed?.rotational > 0 && (
+                <SC.RotationalSpeedIndicator>
+                    <CustomIcon icon="turn-left"></CustomIcon>
+                    <Typography>
+                        {Math.round(
+                            ship?.speed?.rotational / ROTATION_INCREMENT
+                        )}
+                    </Typography>
+                </SC.RotationalSpeedIndicator>
+            )}
+            {ship?.speed?.rotational < 0 && (
+                <SC.RotationalSpeedIndicatorRight>
+                    <Typography variant="h6">
+                        {Math.round(
+                            -ship.speed.rotational / ROTATION_INCREMENT
+                        )}
+                    </Typography>
+                    <CustomIcon icon="turn-right"></CustomIcon>
+                </SC.RotationalSpeedIndicatorRight>
+            )}
             <SC.NavigationChart>
                 {new Array(5).fill(null).map((value, index) => (
                     <SC.ConcentricCircle

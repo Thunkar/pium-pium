@@ -47,7 +47,7 @@ export const IconButton = matStyled(Button)`
     padding: 0.5em;
     color: ${(props) => props.theme.palette.text.primary};
     background-color: ${(props) =>
-        props.disabled ? 'unset' : props.theme.palette.primary.dark};
+        props.disabled ? 'unset' : props.theme.palette.primary.light};
     line-height: 1em;
     min-width: unset;
     text-transform: unset;

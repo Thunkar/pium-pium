@@ -107,11 +107,13 @@ function* shipFactory(playerId) {
             initialPositions[totalShipNumber].y
         ).toArray(),
         rotation: initialRotations[totalShipNumber],
+        hull: 20,
         reactor: {
             total: 10,
             current: 10,
             maxVent: 3,
             vented: 0,
+            heat: 0,
         },
         deflectors: {
             status: defaultStatus,
@@ -129,19 +131,65 @@ function* shipFactory(playerId) {
                 name: 'Maneuvering thrusters',
                 status: defaultStatus,
             },
-        ],
-        port: [
             {
-                type: Subsystems.MISSILE_RACK,
-                name: 'Port missile rack',
+                type: Subsystems.BALLISTIC_RACK,
+                name: 'Aft ballistics',
                 status: defaultStatus,
             },
         ],
-        starboard: [],
+        port: [
+            {
+                type: Subsystems.PLASMA_CANNONS,
+                name: 'Port plasma cannons',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.MISSILE_RACK,
+                name: 'Port missiles',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.BALLISTIC_RACK,
+                name: 'Port ballistics',
+                status: defaultStatus,
+            },
+        ],
+        starboard: [
+            {
+                type: Subsystems.PLASMA_CANNONS,
+                name: 'Starboard plasma cannons',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.MISSILE_RACK,
+                name: 'Starboard missiles',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.BALLISTIC_RACK,
+                name: 'Port ballistics',
+                status: defaultStatus,
+            },
+        ],
         forward: [
             {
                 type: Subsystems.THRUSTERS,
                 name: 'Retro thrusters',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.DISRUPTOR,
+                name: 'Forward disruptor',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.LASER,
+                name: 'Forward laser',
+                status: defaultStatus,
+            },
+            {
+                type: Subsystems.RAILGUN,
+                name: 'Railgun',
                 status: defaultStatus,
             },
         ],

@@ -1,4 +1,3 @@
-import { Reactor } from './components/reactor';
 import { ShipMap } from './components/shipMap';
 import { Helm } from './components/helm';
 import * as SC from './index.styles';
@@ -18,9 +17,8 @@ export function Bridge() {
     const selectedShip = playerShips[selectedShipId];
     return (
         <SC.Container>
-            <Reactor ship={selectedShip}></Reactor>
-            <Helm ship={selectedShip}></Helm>
             <ShipMap ship={selectedShip}></ShipMap>
+            <Helm ship={selectedShip}></Helm>
         </SC.Container>
     );
 }
