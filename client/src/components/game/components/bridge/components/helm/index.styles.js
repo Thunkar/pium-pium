@@ -1,10 +1,19 @@
 import styled from 'styled-components';
-import { styled as matStyled } from '@mui/material';
+import { styled as matStyled, Typography } from '@mui/material';
 
 export const Container = styled.div`
     display: flex;
     position: relative;
     align-items: center;
+    padding: 1rem;
+`;
+
+export const AngleLabel = matStyled(Typography)`
+    position: absolute;
+    line-height: 1rem;
+    top: ${(props) => 50 + 50 * Math.sin(props.angle - Math.PI / 2)}%;
+    left: ${(props) => 50 + 50 * Math.cos(props.angle - Math.PI / 2)}%;
+    transform: translate(-50%, -50%);
 `;
 
 export const NavigationChart = styled.div`

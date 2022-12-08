@@ -1,4 +1,4 @@
-import { createShip, sync } from 'pium-pium-engine';
+import { shipCreated, sync } from 'pium-pium-engine';
 import { put, select, takeLatest } from 'redux-saga/effects';
 import {
     selectPlayerId,
@@ -23,5 +23,5 @@ function* onShipCreated({ payload }) {
 }
 
 export function* playerSaga() {
-    yield takeLatest([createShip, sync], onShipCreated);
+    yield takeLatest([shipCreated, sync], onShipCreated);
 }

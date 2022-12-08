@@ -34,7 +34,7 @@ const gameSlice = createSlice({
                 }
             });
         },
-        createShip: (draft, action) => {
+        shipCreated: (draft, action) => {
             draft.ships[action.payload.ship.id] = action.payload.ship;
         },
         startTurn: (draft, action) => {
@@ -156,7 +156,7 @@ const gameSlice = createSlice({
 export const {
     createPlayer,
     removePlayer,
-    createShip,
+    shipCreated,
     sync,
     startTurn,
     timerEllapsed,

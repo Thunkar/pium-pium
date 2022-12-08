@@ -73,6 +73,16 @@ export function Helm({ ship }) {
     }, [ship?.speed?.directional, ship?.rotation]);
     return (
         <SC.Container>
+            {new Array(8).fill(null).map((value, index) => (
+                <SC.AngleLabel
+                    key={`angle-${index}`}
+                    angle={(Math.PI * index * 45) / 180}
+                    radius={7.5}
+                    variant="p"
+                >
+                    {index * 45}º
+                </SC.AngleLabel>
+            ))}
             {ship?.speed?.rotational > 0 && (
                 <SC.RotationalSpeedIndicator>
                     <CustomIcon icon="turn-left"></CustomIcon>

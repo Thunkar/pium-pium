@@ -7,6 +7,7 @@ import {
     selectPlayerId,
     selectSelectedShip,
 } from '../../../../reducers/playerReducer';
+import CameraControl from './components/cameraControl';
 
 export function Bridge() {
     const playerId = useSelector(selectPlayerId);
@@ -17,6 +18,7 @@ export function Bridge() {
     const selectedShip = playerShips[selectedShipId];
     return (
         <SC.Container>
+            <CameraControl></CameraControl>
             <ShipMap ship={selectedShip}></ShipMap>
             <Helm ship={selectedShip}></Helm>
         </SC.Container>

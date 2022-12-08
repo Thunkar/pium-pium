@@ -69,6 +69,7 @@ export default function Ship({
                     color="white"
                     position={[0, 1, -1]}
                     intensity={0.7}
+                    distance={4}
                     castShadow
                 ></pointLight>
                 <mesh

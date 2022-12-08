@@ -3,7 +3,7 @@ import { rgba } from 'polished';
 
 export const Container = matStyled('div')`
     position: absolute;
-    justify-content: space-around;
+    justify-content: space-between;
     height: 27%;
     bottom: 0;
     display: flex;
@@ -18,5 +18,5 @@ export const Container = matStyled('div')`
     border-width: 5px 5px 0px 5px;
     border-color: ${(props) => rgba(props.theme.palette.primary.light, 0.5)};
     box-sizing: border-box;
-    padding: 10px;
+    padding: 1em 2em;
 `;

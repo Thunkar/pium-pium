@@ -23,13 +23,12 @@ import {
     selectPlayer,
     selectShips,
     selectPlayerShips,
-    createShip,
+    shipCreated,
     selectIsRunning,
     removePlayer,
     seatPlayerAction,
     unseatPlayerAction,
     gameStarted,
-    Subsystems,
     powerManagementRequestAction,
     ventPower,
     routePower,
@@ -49,32 +48,12 @@ import {
     setShipRotation,
     ROTATION_INCREMENT,
     applyThrustVector,
-    ALLOWED_AXES,
     applyRotation,
+    INITIAL_POSITIONS,
+    INITIAL_ROTATIONS,
+    createShip,
 } from 'pium-pium-engine';
 import { get } from 'lodash-es';
-import {
-    uniqueNamesGenerator,
-    adjectives,
-    animals,
-} from 'unique-names-generator';
-import Vec3 from 'vec3';
-
-const initialPositions = [
-    { x: 0, y: -50 },
-    { x: -50, y: 0 },
-    { x: 0, y: 50 },
-    { x: 50, y: 0 },
-];
-const initialRotations = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-
-const defaultStatus = {
-    power: {
-        current: 0,
-        used: 0,
-    },
-    heat: 0,
-};
 
 function* shipFactory(playerId) {
     const ships = yield select(selectShips);
@@ -83,117 +62,16 @@ function* shipFactory(playerId) {
         shipId.startsWith(playerId)
     ).length;
     const id = `${playerId}-${playerShipNumber}`;
-    return {
+    const initialPosition = INITIAL_POSITIONS[totalShipNumber];
+    const initialRotation = INITIAL_ROTATIONS[totalShipNumber];
+    return yield call(
+        createShip,
         id,
-        name: `The ${uniqueNamesGenerator({
-            dictionaries: [adjectives, animals],
-            separator: ' ',
-            style: 'capital',
-        })}`,
-        playerId: playerId,
-        speed: {
-            directional: ALLOWED_AXES.slice(0, 4).reduce(
-                (previous, current) => ({
-                    ...previous,
-                    [current.toFixed(5)]: 0,
-                }),
-                {}
-            ),
-            rotational: 0,
-        },
-        position: new Vec3(
-            initialPositions[totalShipNumber].x,
-            2,
-            initialPositions[totalShipNumber].y
-        ).toArray(),
-        rotation: initialRotations[totalShipNumber],
-        hull: 20,
-        reactor: {
-            total: 10,
-            current: 10,
-            maxVent: 3,
-            vented: 0,
-            heat: 0,
-        },
-        deflectors: {
-            status: defaultStatus,
-            position: 0,
-            width: 0,
-        },
-        aft: [
-            {
-                type: Subsystems.THRUSTERS,
-                name: 'Main thrusters',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.MANEUVERING_THRUSTERS,
-                name: 'Maneuvering thrusters',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.BALLISTIC_RACK,
-                name: 'Aft ballistics',
-                status: defaultStatus,
-            },
-        ],
-        port: [
-            {
-                type: Subsystems.PLASMA_CANNONS,
-                name: 'Port plasma cannons',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.MISSILE_RACK,
-                name: 'Port missiles',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.BALLISTIC_RACK,
-                name: 'Port ballistics',
-                status: defaultStatus,
-            },
-        ],
-        starboard: [
-            {
-                type: Subsystems.PLASMA_CANNONS,
-                name: 'Starboard plasma cannons',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.MISSILE_RACK,
-                name: 'Starboard missiles',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.BALLISTIC_RACK,
-                name: 'Port ballistics',
-                status: defaultStatus,
-            },
-        ],
-        forward: [
-            {
-                type: Subsystems.THRUSTERS,
-                name: 'Retro thrusters',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.DISRUPTOR,
-                name: 'Forward disruptor',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.LASER,
-                name: 'Forward laser',
-                status: defaultStatus,
-            },
-            {
-                type: Subsystems.RAILGUN,
-                name: 'Railgun',
-                status: defaultStatus,
-            },
-        ],
-    };
+        null,
+        playerId,
+        initialPosition,
+        initialRotation
+    );
 }
 
 function* seatPlayer({ payload: { playerId } }) {
@@ -204,7 +82,7 @@ function* seatPlayer({ payload: { playerId } }) {
     const playerShips = yield select(selectPlayerShips, playerId);
     if (Object.keys(playerShips).length === 0) {
         const ship = yield call(shipFactory, playerId);
-        yield call(serverDispatch, createShip({ ship }));
+        yield call(serverDispatch, shipCreated({ ship }));
     }
     const players = yield select(selectPlayers);
     const isGameRunning = yield select(selectIsRunning);
