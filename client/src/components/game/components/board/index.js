@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -7,15 +7,27 @@ import {
     Plane,
     Stats,
     PerspectiveCamera,
+    Circle,
 } from '@react-three/drei';
 import Ship from './components/ship';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectShips } from 'pium-pium-engine';
 import { Vector3, TextureLoader, BackSide } from 'three';
-import { EffectComposer, SelectiveBloom } from '@react-three/postprocessing';
-import { KernelSize } from 'postprocessing';
+import {
+    EffectComposer,
+    GodRays,
+    SelectiveBloom,
+} from '@react-three/postprocessing';
+import { KernelSize, BlendFunction, Resizer } from 'postprocessing';
 
 import PlayerList from './components/playerList';
+import {
+    CAMERA_MODES,
+    selectCameraMode,
+    selectSelectedShip,
+    setCameraMode,
+    setSelectedShip,
+} from '../../../../reducers/playerReducer';
 
 let skyboxImage = 'milky_way';
 
@@ -31,11 +43,27 @@ function createPathStrings(filename) {
     return pathStings;
 }
 
+const Sun = forwardRef(function Sun(props, forwardRef) {
+    return (
+        <Circle
+            args={[30, 30]}
+            ref={forwardRef}
+            position={[0, 50, 500]}
+            rotation-y={Math.PI}
+            {...props}
+        >
+            <meshBasicMaterial color="lightblue" />
+        </Circle>
+    );
+});
+
 function Scene() {
     const materialArray = [];
+    const dispatch = useDispatch();
     const ships = useSelector(selectShips);
     const camera = useRef(null);
     const controls = useRef(null);
+    const [lastCameraMode, setLastCameraMode] = useState(null);
     const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 3, 0));
     const [cameraPosition, setCameraPosition] = useState(
         new Vector3(10, 10, 10)
@@ -54,7 +82,7 @@ function Scene() {
             controls.current.update();
         }
     });
-    const onShipClicked = (ship) => {
+    const targetShip = (ship) => {
         setCameraPosition(
             new Vector3(
                 ...ship.position.map((coord) =>
@@ -65,15 +93,48 @@ function Scene() {
         setCameraTarget(new Vector3(...ship.position));
         setCameraMoved(false);
     };
+    const lookDown = () => {
+        if (lastCameraMode !== CAMERA_MODES.MAP) {
+            controls.current.reset();
+            setCameraPosition(new Vector3(0, 120, 0));
+            setCameraTarget(new Vector3(0, 0, 0));
+            setCameraMoved(false);
+        }
+    };
+
+    useEffect(() => {
+        setLastCameraMode(cameraMode);
+    }, []);
+
+    const cameraMode = useSelector(selectCameraMode);
+    const selectedShip = useSelector(selectSelectedShip);
+    useEffect(() => {
+        switch (cameraMode) {
+            case CAMERA_MODES.FOLLOW: {
+                targetShip(ships.find((ship) => ship.id === selectedShip));
+                break;
+            }
+            case CAMERA_MODES.MAP: {
+                lookDown();
+                break;
+            }
+        }
+        setLastCameraMode(cameraMode);
+    }, [ships, cameraMode]);
 
     const whiteBloomLightRef = useRef([]);
     const whiteBloomGeometryRef = useRef([]);
+    const sunRef = useRef();
 
     const setWhiteBloomLightRef = (el) => {
-        whiteBloomLightRef.current.push(el);
+        if (el) {
+            whiteBloomLightRef.current.push(el);
+        }
     };
     const setWhiteBloomGeometryRef = (el) => {
-        whiteBloomGeometryRef.current.push(el);
+        if (el) {
+            whiteBloomGeometryRef.current.push(el);
+        }
     };
 
     return (
@@ -82,6 +143,7 @@ function Scene() {
             <Stars saturation={10} />
             <fogExp2 color={'black'} density={0.0015} attach="fog" />
             <ambientLight color="white" intensity={0.5} />
+            <Sun ref={sunRef} />
             <mesh>
                 <boxGeometry
                     args={[2000, 2000, 2000]}
@@ -101,7 +163,10 @@ function Scene() {
                 <Ship
                     key={ship.id}
                     ship={ship}
-                    onClick={() => onShipClicked(ship)}
+                    onClick={() => {
+                        dispatch(setSelectedShip({ shipId: ship.id }));
+                        dispatch(setCameraMode(CAMERA_MODES.FOLLOW));
+                    }}
                     setBloomLightRef={setWhiteBloomLightRef}
                     setBloomGeometryRef={setWhiteBloomGeometryRef}
                 ></Ship>
@@ -116,13 +181,36 @@ function Scene() {
             <gridHelper args={[100, 100]}></gridHelper>
             <PerspectiveCamera makeDefault ref={camera} />
             <OrbitControls
-                onStart={() => setCameraMoved(true)}
+                enableRotate={cameraMode !== CAMERA_MODES.MAP}
+                onStart={() => {
+                    if (cameraMode === CAMERA_MODES.FOLLOW) {
+                        dispatch(setCameraMode(CAMERA_MODES.FREE));
+                    }
+                    setCameraMoved(true);
+                }}
                 ref={controls}
             />
-            <EffectComposer autoclear={false}>
+
+            <EffectComposer autoClear={false}>
+                {sunRef?.current && (
+                    <GodRays
+                        sun={sunRef?.current}
+                        blendFunction={BlendFunction.Screen}
+                        samples={60}
+                        density={0.96}
+                        decay={0.9}
+                        weight={0.4}
+                        exposure={0.6}
+                        clampMax={1}
+                        width={Resizer.AUTO_SIZE}
+                        height={Resizer.AUTO_SIZE}
+                        kernelSize={KernelSize.SMALL}
+                        blur={true}
+                    />
+                )}
                 <SelectiveBloom
-                    lights={whiteBloomLightRef.current}
-                    selection={whiteBloomGeometryRef.current}
+                    lights={whiteBloomLightRef?.current}
+                    selection={whiteBloomGeometryRef?.current}
                     selectionLayer={1}
                     intensity={3}
                     luminanceThreshold={0.75}

@@ -7,12 +7,16 @@ import {
     abilityTriggerRequestAction,
     ventHeatRequestAction,
 } from 'pium-pium-engine';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Typography } from '@mui/material';
+import { selectPlayerId } from '../../../../../../reducers/playerReducer.js';
 
 export function ShipMap({ ship }) {
     const [toggledMenus, setToggledMenus] = useState(0);
     const dispatch = useDispatch();
+
+    const playerId = useSelector(selectPlayerId);
+    const notMyShip = ship?.playerId !== playerId;
 
     const countToggledMenus = (menuState) => {
         const valueToAdd = menuState ? +1 : -1;
@@ -99,6 +103,7 @@ export function ShipMap({ ship }) {
                                 reactor={ship.reactor}
                                 status={ship.aft[index].status}
                                 disabled={toggledMenus > 0}
+                                readonly={notMyShip}
                                 onPowerRequest={(value) =>
                                     onPowerRequest(`aft[${index}]`, value)
                                 }
@@ -134,6 +139,7 @@ export function ShipMap({ ship }) {
                                 reactor={ship.reactor}
                                 status={ship.port[index].status}
                                 disabled={toggledMenus > 0}
+                                readonly={notMyShip}
                                 onPowerRequest={(value) =>
                                     onPowerRequest(`port[${index}]`, value)
                                 }
@@ -169,6 +175,7 @@ export function ShipMap({ ship }) {
                                 reactor={ship.reactor}
                                 status={ship.forward[index].status}
                                 disabled={toggledMenus > 0}
+                                readonly={notMyShip}
                                 onPowerRequest={(value) =>
                                     onPowerRequest(`forward[${index}]`, value)
                                 }
@@ -206,6 +213,7 @@ export function ShipMap({ ship }) {
                                 reactor={ship.reactor}
                                 status={ship.starboard[index].status}
                                 disabled={toggledMenus > 0}
+                                readonly={notMyShip}
                                 onPowerRequest={(value) =>
                                     onPowerRequest(`starboard[${index}]`, value)
                                 }

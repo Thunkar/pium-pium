@@ -68,13 +68,14 @@ export const RotationalSpeedIndicator = matStyled('div')`
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 0;
+    top: -0.5rem;
     align-items: center;
     justify-content: flex-start;
-    height: 3.5rem;
+    height: 2.5rem;
     aspect-ratio: 1/1;
     border-radius: 50%;
     padding: 0 0.25rem;
+    font-size: 0.8rem;
 
     background: radial-gradient(
         circle,
@@ -86,6 +87,7 @@ export const RotationalSpeedIndicator = matStyled('div')`
     border: solid 2px ${(props) => props.theme.palette.primary.light};
 
     & > span {
+        font-size: 0.8rem
         margin: 0 0.2rem;
     }
 `;

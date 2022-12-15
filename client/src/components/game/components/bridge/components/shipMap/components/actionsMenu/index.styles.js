@@ -47,7 +47,7 @@ export const IconButton = matStyled(Button)`
     padding: 0.5em;
     color: ${(props) => props.theme.palette.text.primary};
     background-color: ${(props) =>
-        props.disabled ? 'unset' : props.theme.palette.primary.light};
+        props.overlay ? 'unset' : props.theme.palette.primary.light};
     line-height: 1em;
     min-width: unset;
     text-transform: unset;
@@ -58,9 +58,11 @@ export const IconButton = matStyled(Button)`
         padding: 0;
     }
     overflow: hidden;
-    filter: ${(props) => (props.disabled ? 'blur(5px)' : 'unset')};
+    filter: ${(props) => (props.overlay ? 'blur(5px)' : 'unset')};
 
-    &:hover {
+    ${(props) =>
+        !props.disabled ??
+        `&:hover {
         background-color: black;
-    }
+    }`}
 `;

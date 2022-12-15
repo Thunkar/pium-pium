@@ -1,7 +1,6 @@
 import { useGLTF, Billboard, Text } from '@react-three/drei';
-import { animated, config, to, useSpring } from '@react-spring/three';
+import { animated, useSpring } from '@react-spring/three';
 import { Fragment } from 'react';
-import { configs } from 'eslint-plugin-prettier';
 
 export default function Ship({
     ship,
@@ -101,7 +100,7 @@ export default function Ship({
                     position={[0, 0, -2]}
                     intensity={motorIntensity}
                     decay={1.5}
-                    distance={1.5}
+                    distance={1.8}
                     castShadow
                 ></animated.pointLight>
             </animated.group>

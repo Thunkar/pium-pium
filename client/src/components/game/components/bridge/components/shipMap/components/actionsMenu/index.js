@@ -12,14 +12,15 @@ const hiearchicalMenuGenerator = (
     submenuRadius,
     submenuStartAngle,
     onSubmenuOpen,
-    onAbilityTriggered
+    onAbilityTriggered,
+    readonly
 ) => {
     const energyCost =
         parseInt(
             ability.costs?.find((cost) => cost.type === Costs.ENERGY)?.value,
             10
         ) || 0;
-    const disabled = status?.power.current < energyCost;
+    const disabled = status?.power.current < energyCost || readonly;
     return (
         <RadialMenu
             key={`ability-${abilityIndex}`}
@@ -61,6 +62,7 @@ export const ActionsMenu = ({
     submenuStartAngle = 0,
     horizontal,
     disabled,
+    readonly,
     onPowerRequest,
     onAbilityTriggered,
     onVentHeatRequest,
@@ -73,10 +75,11 @@ export const ActionsMenu = ({
             radius={submenuOpen ? 0 : radius}
             startAngle={startAngle}
             onMenuToggled={(isOpen) => {
+                if (readonly) return;
                 setMenuOpen(isOpen);
                 onMenuToggled(isOpen);
             }}
-            disabled={disabled}
+            disabled={disabled || readonly}
             customToggle={
                 <SC.ActionToggleContainer>
                     <SC.PowerIndicator
@@ -97,7 +100,10 @@ export const ActionsMenu = ({
                     >
                         {status?.heat}
                     </SC.HeatIndicator>
-                    <SC.IconButton disabled={disabled}>
+                    <SC.IconButton
+                        disabled={readonly}
+                        overlay={disabled ? 1 : 0}
+                    >
                         <CustomIcon
                             icon={isMenuOpen ? 'clear' : type}
                         ></CustomIcon>
@@ -109,7 +115,7 @@ export const ActionsMenu = ({
                 <Ability
                     key={'powerUp'}
                     overlay={submenuOpen}
-                    disabled={reactor.current <= 0}
+                    disabled={reactor.current <= 0 || readonly}
                     onClick={() => onPowerRequest(1)}
                     ability={{
                         effects: { or: [{ type: Costs.ENERGY, value: '+1' }] },
@@ -120,7 +126,8 @@ export const ActionsMenu = ({
                     overlay={submenuOpen}
                     disabled={
                         reactor.current >= reactor.total ||
-                        reactor.vented >= reactor.maxVent
+                        reactor.vented >= reactor.maxVent ||
+                        readonly
                     }
                     onClick={() => onPowerRequest(-1)}
                     ability={{
@@ -130,7 +137,7 @@ export const ActionsMenu = ({
                 <Ability
                     key={'ventHeat'}
                     overlay={submenuOpen}
-                    disabled={status.heat === 0}
+                    disabled={status.heat === 0 || readonly}
                     onClick={() => onVentHeatRequest(-1)}
                     ability={{
                         effects: {
@@ -155,7 +162,8 @@ export const ActionsMenu = ({
                             submenuRadius,
                             submenuStartAngle,
                             setSubmenuOpen,
-                            onAbilityTriggered
+                            onAbilityTriggered,
+                            readonly
                         )
                     )
                 ),
