@@ -25,7 +25,7 @@ export const Ability = matStyled('div')`
         !props.disabled ? `&:hover { background-color: black; }` : undefined}
 `;
 
-export const Costs = styled.div`
+export const COSTS = styled.div`
     display: flex;
     flex-direction: row;
 

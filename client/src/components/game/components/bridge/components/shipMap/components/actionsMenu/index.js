@@ -3,7 +3,7 @@ import * as SC from './index.styles.js';
 import { CustomIcon } from '../../../../../../../common/CustomIcon';
 import { RadialMenu } from '../../../../../../../common/RadialMenu';
 import Ability from './components/ability';
-import { Costs } from 'pium-pium-engine/lib/data/parts.js';
+import { COSTS } from 'pium-pium-engine/lib/data/parts.js';
 
 const hiearchicalMenuGenerator = (
     ability,
@@ -17,7 +17,7 @@ const hiearchicalMenuGenerator = (
 ) => {
     const energyCost =
         parseInt(
-            ability.costs?.find((cost) => cost.type === Costs.ENERGY)?.value,
+            ability.costs?.find((cost) => cost.type === COSTS.ENERGY)?.value,
             10
         ) || 0;
     const disabled = status?.power.current < energyCost || readonly;
@@ -118,7 +118,7 @@ export const ActionsMenu = ({
                     disabled={reactor.current <= 0 || readonly}
                     onClick={() => onPowerRequest(1)}
                     ability={{
-                        effects: { or: [{ type: Costs.ENERGY, value: '+1' }] },
+                        effects: { or: [{ type: COSTS.ENERGY, value: '+1' }] },
                     }}
                 />,
                 <Ability
@@ -131,7 +131,7 @@ export const ActionsMenu = ({
                     }
                     onClick={() => onPowerRequest(-1)}
                     ability={{
-                        effects: { or: [{ type: Costs.ENERGY, value: '-1' }] },
+                        effects: { or: [{ type: COSTS.ENERGY, value: '-1' }] },
                     }}
                 />,
                 <Ability
@@ -141,7 +141,7 @@ export const ActionsMenu = ({
                     onClick={() => onVentHeatRequest(-1)}
                     ability={{
                         effects: {
-                            or: [{ type: Costs.HEAT, value: '-1' }],
+                            or: [{ type: COSTS.HEAT, value: '-1' }],
                         },
                     }}
                 />,

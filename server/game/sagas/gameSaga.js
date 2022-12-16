@@ -33,9 +33,9 @@ import {
     ventPower,
     routePower,
     abilityTriggerRequestAction,
-    Costs,
+    COSTS,
     usePower,
-    Effects,
+    EFFECTS,
     Parts,
     SHIP_SIDES,
     SIDE_TO_ROTATION_MAP,
@@ -180,7 +180,7 @@ function evaluateCosts(ship, subsystem, costs, target) {
     const systemStatus = get(ship, `${subsystem}.status`);
     const areCostsMet = costs.every((cost) => {
         switch (cost.type) {
-            case Costs.ENERGY: {
+            case COSTS.ENERGY: {
                 sideEffects.push(
                     usePower({ shipId: ship.id, subsystem, value: cost.value })
                 );
@@ -189,7 +189,7 @@ function evaluateCosts(ship, subsystem, costs, target) {
                     systemStatus.power.used < systemStatus.power.current
                 );
             }
-            case Costs.HEAT: {
+            case COSTS.HEAT: {
                 sideEffects.push(
                     overheat({ shipId: ship.id, subsystem, value: cost.value })
                 );
@@ -209,7 +209,7 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
     const sideEffects = [];
     toApply.forEach((effect) => {
         switch (effect.type) {
-            case Effects.ACCELERATE: {
+            case EFFECTS.ACCELERATE: {
                 const thrustAngle =
                     SIDE_TO_ROTATION_MAP[
                         Object.values(SHIP_SIDES).find((side) =>
@@ -238,7 +238,7 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                 );
                 break;
             }
-            case Effects.TURN_LEFT: {
+            case EFFECTS.TURN_LEFT: {
                 const angleDelta = effect.value * ROTATION_INCREMENT;
                 const { newRotation, newRotationalSpeed } = applyRotation(
                     ship.speed.rotational,
@@ -259,7 +259,7 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                 );
                 break;
             }
-            case Effects.TURN_LEFT_THEN_STOP: {
+            case EFFECTS.TURN_LEFT_THEN_STOP: {
                 const angleDelta = effect.value * ROTATION_INCREMENT;
                 const { newRotation } = applyRotation(
                     ship.speed.rotational,
@@ -275,7 +275,7 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                 );
                 break;
             }
-            case Effects.TURN_RIGHT: {
+            case EFFECTS.TURN_RIGHT: {
                 const angleDelta = -effect.value * ROTATION_INCREMENT;
                 const { newRotation, newRotationalSpeed } = applyRotation(
                     ship.speed.rotational,
@@ -296,7 +296,7 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                 );
                 break;
             }
-            case Effects.TURN_RIGHT_THEN_STOP: {
+            case EFFECTS.TURN_RIGHT_THEN_STOP: {
                 const angleDelta = -effect.value * ROTATION_INCREMENT;
                 const { newRotation } = applyRotation(
                     ship.speed.rotational,

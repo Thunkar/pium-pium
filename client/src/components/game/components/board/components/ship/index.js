@@ -1,13 +1,33 @@
 import { useGLTF, Billboard, Text } from '@react-three/drei';
 import { animated, useSpring } from '@react-spring/three';
-import { Fragment } from 'react';
+import { Fragment, memo, useCallback, useEffect, useState } from 'react';
 
-export default function Ship({
+function Ship({
     ship,
     onClick,
     setBloomLightRef,
     setBloomGeometryRef,
+    cleanupBloomLightRefs,
+    cleanupBloomGeometryRefs,
 }) {
+    const [bloomLightRefs, setBloomLightRefs] = useState([]);
+    const [bloomGeometryRefs, setBloomGeometryRefs] = useState([]);
+    useEffect(() => {
+        return () => {
+            cleanupBloomGeometryRefs(bloomGeometryRefs);
+            cleanupBloomLightRefs(bloomLightRefs);
+        };
+    }, [bloomLightRefs, bloomGeometryRefs]);
+    const addBloomLightRef = useCallback((el) => {
+        if (!el) return;
+        setBloomLightRefs((currentRefs) => currentRefs.concat([el]));
+        setBloomLightRef(el);
+    }, []);
+    const addBloomGeometryRef = useCallback((el) => {
+        if (!el) return;
+        setBloomGeometryRefs((currentRefs) => currentRefs.concat([el]));
+        setBloomGeometryRef(el);
+    }, []);
     const { nodes, materials } = useGLTF('assets/ship.gltf');
     const { position, billboardPosition, rotation } = useSpring({
         position: ship.position,
@@ -21,6 +41,7 @@ export default function Ship({
             mass: 8,
             tension: 200,
             friction: 80,
+            precision: 0.0001,
         },
     });
     const { motorIntensity } = useSpring({
@@ -63,6 +84,9 @@ export default function Ship({
                 rotation-y={rotation}
                 dispose={null}
                 onClick={onClick}
+                userData={{
+                    shipId: ship.id,
+                }}
             >
                 <pointLight
                     color="white"
@@ -82,7 +106,7 @@ export default function Ship({
                 {motors.map((motor, index) => (
                     <Fragment key={`motor-${index}`}>
                         <mesh
-                            ref={setBloomGeometryRef}
+                            ref={addBloomGeometryRef}
                             position={motor.position}
                             scale={motor.scale}
                         >
@@ -96,7 +120,7 @@ export default function Ship({
                 ))}
                 <animated.pointLight
                     color={motors[0].color}
-                    ref={setBloomLightRef}
+                    ref={addBloomLightRef}
                     position={[0, 0, -2]}
                     intensity={motorIntensity}
                     decay={1.5}
@@ -107,5 +131,7 @@ export default function Ship({
         </>
     );
 }
+
+export default memo(Ship);
 
 useGLTF.preload('assets/ship.gltf');

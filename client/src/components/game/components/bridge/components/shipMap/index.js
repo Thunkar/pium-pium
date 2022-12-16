@@ -42,7 +42,7 @@ export function ShipMap({ ship }) {
     };
 
     const onAbilityTriggered = function (subsystem, abilityIndex, effectIndex) {
-        dispatch(
+        const isTargeted = dispatch(
             abilityTriggerRequestAction({
                 subsystem,
                 shipId: ship.id,

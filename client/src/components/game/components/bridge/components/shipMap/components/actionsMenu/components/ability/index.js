@@ -1,4 +1,4 @@
-import { Costs } from 'pium-pium-engine';
+import { COSTS } from 'pium-pium-engine';
 import { Fragment } from 'react';
 import { CustomIcon } from '../../../../../../../../../common/CustomIcon';
 import * as SC from './index.styles';
@@ -6,7 +6,7 @@ import * as SC from './index.styles';
 const Ability = function ({ ability, status, overlay, disabled, onClick }) {
     const energyCost =
         parseInt(
-            ability.costs?.find((cost) => cost.type === Costs.ENERGY)?.value,
+            ability.costs?.find((cost) => cost.type === COSTS.ENERGY)?.value,
             10
         ) || 0;
     disabled = disabled || status?.power.current < energyCost;
@@ -21,16 +21,16 @@ const Ability = function ({ ability, status, overlay, disabled, onClick }) {
             disabled={disabled}
             onClick={onAbilityTriggered}
         >
-            <SC.Costs>
+            <SC.COSTS>
                 {ability.costs?.map((cost, index) => (
                     <SC.CostContainer key={`cost-${index}`}>
                         {cost.value}&nbsp;
                         {<CustomIcon icon={cost.type}></CustomIcon>}
                     </SC.CostContainer>
                 ))}
-            </SC.Costs>
+            </SC.COSTS>
             <SC.TextContainer>{ability.text}</SC.TextContainer>
-            <SC.Costs>
+            <SC.COSTS>
                 {ability.effects?.or
                     ?.filter((or) => !or.onlyInSubmenu)
                     .map((or, index) => (
@@ -51,7 +51,7 @@ const Ability = function ({ ability, status, overlay, disabled, onClick }) {
                                     1 && <p>|&nbsp;</p>}
                         </Fragment>
                     ))}
-            </SC.Costs>
+            </SC.COSTS>
         </SC.Ability>
     );
 };

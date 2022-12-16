@@ -4,7 +4,7 @@ import {
     adjectives,
     animals,
 } from 'unique-names-generator';
-import { Subsystems } from '../index.mjs';
+import { SUBSYSTEMS } from '../index.mjs';
 
 export const INITIAL_POSITIONS = [
     { x: 0, y: -50 },
@@ -168,73 +168,73 @@ export function createShip(id, name, playerId, position, rotation) {
         },
         aft: [
             {
-                type: Subsystems.THRUSTERS,
+                type: SUBSYSTEMS.THRUSTERS,
                 name: 'Main thrusters',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.MANEUVERING_THRUSTERS,
+                type: SUBSYSTEMS.MANEUVERING_THRUSTERS,
                 name: 'Maneuvering thrusters',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.BALLISTIC_RACK,
+                type: SUBSYSTEMS.BALLISTIC_RACK,
                 name: 'Aft ballistics',
                 status: defaultStatus,
             },
         ],
         port: [
             {
-                type: Subsystems.PLASMA_CANNONS,
+                type: SUBSYSTEMS.PLASMA_CANNONS,
                 name: 'Port plasma cannons',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.MISSILE_RACK,
+                type: SUBSYSTEMS.MISSILE_RACK,
                 name: 'Port missiles',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.BALLISTIC_RACK,
+                type: SUBSYSTEMS.BALLISTIC_RACK,
                 name: 'Port ballistics',
                 status: defaultStatus,
             },
         ],
         starboard: [
             {
-                type: Subsystems.PLASMA_CANNONS,
+                type: SUBSYSTEMS.PLASMA_CANNONS,
                 name: 'Starboard plasma cannons',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.MISSILE_RACK,
+                type: SUBSYSTEMS.MISSILE_RACK,
                 name: 'Starboard missiles',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.BALLISTIC_RACK,
+                type: SUBSYSTEMS.BALLISTIC_RACK,
                 name: 'Port ballistics',
                 status: defaultStatus,
             },
         ],
         forward: [
             {
-                type: Subsystems.THRUSTERS,
+                type: SUBSYSTEMS.THRUSTERS,
                 name: 'Retro thrusters',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.DISRUPTOR,
+                type: SUBSYSTEMS.DISRUPTOR,
                 name: 'Forward disruptor',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.LASER,
+                type: SUBSYSTEMS.LASER,
                 name: 'Forward laser',
                 status: defaultStatus,
             },
             {
-                type: Subsystems.RAILGUN,
+                type: SUBSYSTEMS.RAILGUN,
                 name: 'Railgun',
                 status: defaultStatus,
             },

@@ -1,5 +1,12 @@
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import {
+    forwardRef,
+    memo,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -28,6 +35,7 @@ import {
     setCameraMode,
     setSelectedShip,
 } from '../../../../reducers/playerReducer';
+import { current } from '@reduxjs/toolkit';
 
 let skyboxImage = 'milky_way';
 
@@ -43,22 +51,85 @@ function createPathStrings(filename) {
     return pathStings;
 }
 
-const Sun = forwardRef(function Sun(props, forwardRef) {
+const Sun = memo(
+    forwardRef(function Sun(props, forwardRef) {
+        return (
+            <Circle
+                args={[30, 30]}
+                ref={forwardRef}
+                position={[0, 50, 500]}
+                rotation-y={Math.PI}
+            >
+                <meshBasicMaterial color="lightblue" />
+            </Circle>
+        );
+    })
+);
+
+const MemoizedGodRays = memo(function MemoizedGodRays({ sun }) {
     return (
-        <Circle
-            args={[30, 30]}
-            ref={forwardRef}
-            position={[0, 50, 500]}
-            rotation-y={Math.PI}
-            {...props}
-        >
-            <meshBasicMaterial color="lightblue" />
-        </Circle>
+        <GodRays
+            sun={sun}
+            blendFunction={BlendFunction.Screen}
+            samples={60}
+            density={0.96}
+            decay={0.9}
+            weight={0.4}
+            exposure={0.6}
+            clampMax={1}
+            width={Resizer.AUTO_SIZE}
+            height={Resizer.AUTO_SIZE}
+            kernelSize={KernelSize.SMALL}
+            blur={true}
+        />
+    );
+});
+
+const MemoizedSkyBox = memo(function SkyBox() {
+    const materialArray = [];
+    if (materialArray.length === 0) {
+        const skyboxImagePaths = createPathStrings(skyboxImage);
+        skyboxImagePaths.forEach((image) =>
+            materialArray.push(useLoader(TextureLoader, image))
+        );
+    }
+    return (
+        <mesh>
+            <boxGeometry
+                args={[2000, 2000, 2000]}
+                attach={'geometry'}
+            ></boxGeometry>
+            {materialArray.map((texture, index) => (
+                <meshBasicMaterial
+                    attach={`material-${index}`}
+                    key={texture.id}
+                    map={texture}
+                    side={BackSide}
+                ></meshBasicMaterial>
+            ))}
+        </mesh>
+    );
+});
+
+const MemoizedSelectiveBloom = memo(function MemoizedSelectiveBloom({
+    lights,
+    geometries,
+}) {
+    return (
+        <SelectiveBloom
+            lights={lights}
+            selection={geometries}
+            selectionLayer={1}
+            intensity={3}
+            luminanceThreshold={0.75}
+            luminanceSmoothing={0.025}
+            blurPass={null}
+            kernelSize={KernelSize.LARGE}
+        />
     );
 });
 
 function Scene() {
-    const materialArray = [];
     const dispatch = useDispatch();
     const ships = useSelector(selectShips);
     const camera = useRef(null);
@@ -69,12 +140,7 @@ function Scene() {
         new Vector3(10, 10, 10)
     );
     const [cameraMoved, setCameraMoved] = useState(false);
-    if (materialArray.length === 0) {
-        const skyboxImagePaths = createPathStrings(skyboxImage);
-        skyboxImagePaths.forEach((image) =>
-            materialArray.push(useLoader(TextureLoader, image))
-        );
-    }
+
     useFrame((state, delta) => {
         if (camera?.current && controls?.current && !cameraMoved) {
             camera.current.position.lerp(cameraPosition, delta * 3);
@@ -83,14 +149,7 @@ function Scene() {
         }
     });
     const targetShip = (ship) => {
-        setCameraPosition(
-            new Vector3(
-                ...ship.position.map((coord) =>
-                    coord > 0 ? coord + 5 : coord - 5
-                )
-            )
-        );
-        setCameraTarget(new Vector3(...ship.position));
+        setCameraTarget(new Vector3(...ship?.position));
         setCameraMoved(false);
     };
     const lookDown = () => {
@@ -111,7 +170,14 @@ function Scene() {
     useEffect(() => {
         switch (cameraMode) {
             case CAMERA_MODES.FOLLOW: {
-                targetShip(ships.find((ship) => ship.id === selectedShip));
+                const currentShip = ships.find(
+                    (ship) => ship.id === selectedShip
+                );
+                if (currentShip) {
+                    targetShip(currentShip);
+                } else {
+                    dispatch(setCameraMode(CAMERA_MODES.FREE));
+                }
                 break;
             }
             case CAMERA_MODES.MAP: {
@@ -122,20 +188,65 @@ function Scene() {
         setLastCameraMode(cameraMode);
     }, [ships, cameraMode]);
 
-    const whiteBloomLightRef = useRef([]);
-    const whiteBloomGeometryRef = useRef([]);
-    const sunRef = useRef();
+    const [bloomLights, setBloomLightRefs] = useState([]);
+    const [bloomGeometries, setBloomGeometryRefs] = useState([]);
+    const [sun, sunRef] = useState();
 
-    const setWhiteBloomLightRef = (el) => {
+    const setBloomLightRef = useCallback((el) => {
         if (el) {
-            whiteBloomLightRef.current.push(el);
+            setBloomLightRefs((currentRefs) => currentRefs.concat([el]));
         }
-    };
-    const setWhiteBloomGeometryRef = (el) => {
+    }, []);
+
+    const setBloomGeometryRef = useCallback((el) => {
         if (el) {
-            whiteBloomGeometryRef.current.push(el);
+            setBloomGeometryRefs((currentRefs) => currentRefs.concat([el]));
         }
-    };
+    }, []);
+
+    const cleanupBloomLightRefs = useCallback((elements) => {
+        setBloomLightRefs((currentRefs) =>
+            currentRefs.filter(
+                (light) =>
+                    !elements.find((element) => element.uuid === light.uuid)
+            )
+        );
+    }, []);
+
+    const cleanupBloomGeometryRefs = useCallback((elements) => {
+        setBloomGeometryRefs((currentRefs) =>
+            currentRefs.filter(
+                (geometry) =>
+                    !elements.find((element) => element.uuid === geometry.uuid)
+            )
+        );
+    }, []);
+
+    const onShipSelected = useCallback(
+        (e) => {
+            const shipId = e.eventObject.userData.shipId;
+            const ship = ships.find((ship) => ship.id === shipId);
+            setCameraPosition(
+                new Vector3(
+                    ...ship?.position.map((coord) =>
+                        coord > 0 ? coord + 5 : coord - 5
+                    )
+                )
+            );
+            dispatch(setSelectedShip({ shipId }));
+            dispatch(setCameraMode(CAMERA_MODES.FOLLOW));
+        },
+        [ships]
+    );
+
+    const onMovementStart = useCallback((event) => {
+        setCameraPosition(event.target.object.position);
+        setCameraMoved(true);
+    }, []);
+
+    const onMovementEnd = useCallback((event) => {
+        setCameraPosition(event.target.object.position);
+    });
 
     return (
         <>
@@ -144,31 +255,17 @@ function Scene() {
             <fogExp2 color={'black'} density={0.0015} attach="fog" />
             <ambientLight color="white" intensity={0.5} />
             <Sun ref={sunRef} />
-            <mesh>
-                <boxGeometry
-                    args={[2000, 2000, 2000]}
-                    attach={'geometry'}
-                ></boxGeometry>
-                {materialArray.map((texture, index) => (
-                    <meshBasicMaterial
-                        attach={`material-${index}`}
-                        key={texture.id}
-                        map={texture}
-                        side={BackSide}
-                    ></meshBasicMaterial>
-                ))}
-            </mesh>
-
+            <MemoizedSkyBox />
             {ships.map((ship) => (
                 <Ship
+                    id={ship.id}
                     key={ship.id}
                     ship={ship}
-                    onClick={() => {
-                        dispatch(setSelectedShip({ shipId: ship.id }));
-                        dispatch(setCameraMode(CAMERA_MODES.FOLLOW));
-                    }}
-                    setBloomLightRef={setWhiteBloomLightRef}
-                    setBloomGeometryRef={setWhiteBloomGeometryRef}
+                    onClick={onShipSelected}
+                    setBloomLightRef={setBloomLightRef}
+                    setBloomGeometryRef={setBloomGeometryRef}
+                    cleanupBloomLightRefs={cleanupBloomLightRefs}
+                    cleanupBloomGeometryRefs={cleanupBloomGeometryRefs}
                 ></Ship>
             ))}
             <Plane rotation-x={-Math.PI / 2} args={[100, 100, 100, 100]}>
@@ -182,42 +279,19 @@ function Scene() {
             <PerspectiveCamera makeDefault ref={camera} />
             <OrbitControls
                 enableRotate={cameraMode !== CAMERA_MODES.MAP}
-                onStart={() => {
-                    if (cameraMode === CAMERA_MODES.FOLLOW) {
-                        dispatch(setCameraMode(CAMERA_MODES.FREE));
-                    }
-                    setCameraMoved(true);
-                }}
+                onStart={onMovementStart}
+                onEnd={onMovementEnd}
                 ref={controls}
             />
 
-            <EffectComposer autoClear={false}>
-                {sunRef?.current && (
-                    <GodRays
-                        sun={sunRef?.current}
-                        blendFunction={BlendFunction.Screen}
-                        samples={60}
-                        density={0.96}
-                        decay={0.9}
-                        weight={0.4}
-                        exposure={0.6}
-                        clampMax={1}
-                        width={Resizer.AUTO_SIZE}
-                        height={Resizer.AUTO_SIZE}
-                        kernelSize={KernelSize.SMALL}
-                        blur={true}
+            <EffectComposer>
+                {sun && <MemoizedGodRays sun={sun} />}
+                {bloomGeometries && bloomLights && (
+                    <MemoizedSelectiveBloom
+                        lights={bloomLights}
+                        geometries={bloomGeometries}
                     />
                 )}
-                <SelectiveBloom
-                    lights={whiteBloomLightRef?.current}
-                    selection={whiteBloomGeometryRef?.current}
-                    selectionLayer={1}
-                    intensity={3}
-                    luminanceThreshold={0.75}
-                    luminanceSmoothing={0.025}
-                    blurPass={null}
-                    kernelSize={KernelSize.LARGE}
-                />
             </EffectComposer>
         </>
     );

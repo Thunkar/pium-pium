@@ -1,11 +1,11 @@
-export const Costs = {
+export const COSTS = {
     ENERGY: 'energy',
     HEAT: 'heat',
     RANGE: 'range',
     ANGLE: 'angle',
 };
 
-export const Effects = {
+export const EFFECTS = {
     TURN_RIGHT: 'turn-right',
     TURN_LEFT: 'turn-left',
     TURN_RIGHT_THEN_STOP: 'turn-right-then-stop',
@@ -14,7 +14,9 @@ export const Effects = {
     DAMAGE: 'damage',
 };
 
-export const Subsystems = {
+export const TARGETED_EFFECTS = [EFFECTS.DAMAGE];
+
+export const SUBSYSTEMS = {
     THRUSTERS: 'thrusters',
     MANEUVERING_THRUSTERS: 'maneuvering_thrusters',
     MISSILE_RACK: 'missile_rack',
@@ -26,119 +28,119 @@ export const Subsystems = {
 };
 
 export const Parts = {
-    [Subsystems.THRUSTERS]: {
-        type: Subsystems.THRUSTERS,
+    [SUBSYSTEMS.THRUSTERS]: {
+        type: SUBSYSTEMS.THRUSTERS,
         abilities: [
             {
-                costs: [{ value: 2, type: Costs.ENERGY }],
+                costs: [{ value: 2, type: COSTS.ENERGY }],
                 text: 'Burn',
                 effects: {
-                    or: [{ type: Effects.ACCELERATE, value: 1 }],
+                    or: [{ type: EFFECTS.ACCELERATE, value: 1 }],
                 },
             },
             {
                 costs: [
-                    { value: 2, type: Costs.ENERGY },
-                    { value: 2, type: Costs.HEAT },
+                    { value: 2, type: COSTS.ENERGY },
+                    { value: 2, type: COSTS.HEAT },
                 ],
                 text: 'Afterburners',
                 effects: {
-                    or: [{ type: Effects.ACCELERATE, value: 2 }],
+                    or: [{ type: EFFECTS.ACCELERATE, value: 2 }],
                 },
             },
             {
-                costs: [{ value: 2, type: Costs.ENERGY }],
+                costs: [{ value: 2, type: COSTS.ENERGY }],
                 text: 'Maneuver',
                 effects: {
                     or: [
-                        { type: Effects.TURN_LEFT, value: 1 },
-                        { type: Effects.TURN_RIGHT, value: 1 },
+                        { type: EFFECTS.TURN_LEFT, value: 1 },
+                        { type: EFFECTS.TURN_RIGHT, value: 1 },
                     ],
                 },
             },
         ],
     },
-    [Subsystems.MANEUVERING_THRUSTERS]: {
-        type: Subsystems.MANEUVERING_THRUSTERS,
+    [SUBSYSTEMS.MANEUVERING_THRUSTERS]: {
+        type: SUBSYSTEMS.MANEUVERING_THRUSTERS,
         abilities: [
             {
-                costs: [{ value: 1, type: Costs.ENERGY }],
+                costs: [{ value: 1, type: COSTS.ENERGY }],
                 text: 'Maneuver',
                 effects: {
                     or: [
                         {
-                            type: Effects.TURN_RIGHT_THEN_STOP,
+                            type: EFFECTS.TURN_RIGHT_THEN_STOP,
                             value: 1,
                             text: 'then stop',
                             onlyInSubmenu: true,
                         },
                         {
-                            type: Effects.TURN_RIGHT,
+                            type: EFFECTS.TURN_RIGHT,
                             value: 1,
                             onlyInSubmenu: true,
                         },
                         {
-                            type: Effects.TURN_LEFT,
+                            type: EFFECTS.TURN_LEFT,
                             value: 1,
                             onlyInSubmenu: true,
                         },
                         {
-                            type: Effects.TURN_LEFT_THEN_STOP,
+                            type: EFFECTS.TURN_LEFT_THEN_STOP,
                             value: 1,
                             text: 'then stop',
                             onlyInSubmenu: true,
                         },
 
-                        { type: Effects.TURN_LEFT, value: 2 },
-                        { type: Effects.TURN_RIGHT, value: 2 },
+                        { type: EFFECTS.TURN_LEFT, value: 2 },
+                        { type: EFFECTS.TURN_RIGHT, value: 2 },
                     ],
                 },
             },
         ],
     },
-    [Subsystems.MISSILE_RACK]: {
-        type: Subsystems.MISSILE_RACK,
+    [SUBSYSTEMS.MISSILE_RACK]: {
+        type: SUBSYSTEMS.MISSILE_RACK,
         abilities: [
             {
                 costs: [
                     {
-                        type: Costs.ENERGY,
+                        type: COSTS.ENERGY,
                         value: 3,
                     },
                     {
-                        type: Costs.ANGLE,
+                        type: COSTS.ANGLE,
                         value: 3,
                     },
                     {
-                        type: Costs.RANGE,
+                        type: COSTS.RANGE,
                         value: 2,
                     },
                 ],
                 text: 'Barrage',
                 effects: {
-                    or: [{ type: Effects.DAMAGE, value: '3 x 2' }],
+                    or: [{ type: EFFECTS.DAMAGE, value: '3 x 2' }],
                 },
             },
         ],
     },
-    [Subsystems.BALLISTIC_RACK]: {
-        type: Subsystems.BALLISTIC_RACK,
+    [SUBSYSTEMS.BALLISTIC_RACK]: {
+        type: SUBSYSTEMS.BALLISTIC_RACK,
         abilities: [],
     },
-    [Subsystems.LASER]: {
-        type: Subsystems.LASER,
+    [SUBSYSTEMS.LASER]: {
+        type: SUBSYSTEMS.LASER,
         abilities: [],
     },
-    [Subsystems.DISRUPTOR]: {
-        type: Subsystems.DISRUPTOR,
+    [SUBSYSTEMS.DISRUPTOR]: {
+        type: SUBSYSTEMS.DISRUPTOR,
         abilities: [],
     },
-    [Subsystems.RAILGUN]: {
-        type: Subsystems.RAILGUN,
+    [SUBSYSTEMS.RAILGUN]: {
+        type: SUBSYSTEMS.RAILGUN,
         abilities: [],
     },
-    [Subsystems.PLASMA_CANNONS]: {
-        type: Subsystems.PLASMA_CANNONS,
+    [SUBSYSTEMS.PLASMA_CANNONS]: {
+        type: SUBSYSTEMS.PLASMA_CANNONS,
         abilities: [],
     },
 };
