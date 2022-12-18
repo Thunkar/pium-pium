@@ -1,4 +1,4 @@
-import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { createSlice, createSelector, createAction } from '@reduxjs/toolkit';
 
 export const CAMERA_MODES = {
     FOLLOW: 'FOLLOW',
@@ -11,6 +11,9 @@ const initialState = {
     selectedShip: null,
     camera: {
         mode: CAMERA_MODES.FOLLOW,
+    },
+    visualAids: {
+        ranges: {},
     },
 };
 
@@ -27,13 +30,29 @@ const playerSlice = createSlice({
         setCameraMode: (draft, action) => {
             draft.camera.mode = action.payload;
         },
+        rangeRenderRequested: (draft, action) => {
+            const { shipId, angle, range, orientation } = action.payload;
+            draft.visualAids.ranges[shipId] = {
+                show: true,
+                angle,
+                range,
+                orientation,
+            };
+        },
     },
 });
 
 // Actions
 
-export const { setPlayerId, setSelectedShip, setCameraMode } =
-    playerSlice.actions;
+export const requestTargetSelectionForEffect = createAction(
+    'player/requestTargetSelectionForEffect'
+);
+export const {
+    setPlayerId,
+    setSelectedShip,
+    setCameraMode,
+    rangeRenderRequested,
+} = playerSlice.actions;
 
 // Selectors
 
@@ -49,6 +68,10 @@ export const selectSelectedShip = createSelector(
 export const selectCameraMode = createSelector(
     selectPlayer,
     (state) => state.camera.mode
+);
+export const selectRangeVisualAid = createSelector(
+    [selectPlayer, (state, shipId) => shipId],
+    (state, shipId) => state.visualAids.ranges[shipId]
 );
 
 export const playerReducer = playerSlice.reducer;

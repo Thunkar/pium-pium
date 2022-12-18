@@ -27,7 +27,7 @@ export const SUBSYSTEMS = {
     RAILGUN: 'railgun',
 };
 
-export const Parts = {
+export const PARTS = {
     [SUBSYSTEMS.THRUSTERS]: {
         type: SUBSYSTEMS.THRUSTERS,
         abilities: [

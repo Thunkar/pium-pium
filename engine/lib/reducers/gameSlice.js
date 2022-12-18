@@ -215,6 +215,11 @@ export const selectPlayerShips = createSelector(
     }
 );
 
+export const selectShip = createSelector(
+    [selectGame, (state, shipId) => shipId],
+    (state, shipId) => state.ships[shipId]
+);
+
 export const selectShips = createSelector(selectGame, (state) =>
     Object.values(state.ships).sort()
 );

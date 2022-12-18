@@ -2,14 +2,19 @@ import { Fragment, useState } from 'react';
 import { ActionsMenu } from './components/actionsMenu/index.js';
 import * as SC from './index.styles.js';
 import {
-    Parts,
+    PARTS,
     powerManagementRequestAction,
     abilityTriggerRequestAction,
     ventHeatRequestAction,
+    TARGETED_EFFECTS,
 } from 'pium-pium-engine';
 import { useDispatch, useSelector } from 'react-redux';
 import { Typography } from '@mui/material';
-import { selectPlayerId } from '../../../../../../reducers/playerReducer.js';
+import {
+    requestTargetSelectionForEffect,
+    selectPlayerId,
+} from '../../../../../../reducers/playerReducer.js';
+import { get } from 'lodash-es';
 
 export function ShipMap({ ship }) {
     const [toggledMenus, setToggledMenus] = useState(0);
@@ -42,14 +47,33 @@ export function ShipMap({ ship }) {
     };
 
     const onAbilityTriggered = function (subsystem, abilityIndex, effectIndex) {
-        const isTargeted = dispatch(
-            abilityTriggerRequestAction({
-                subsystem,
-                shipId: ship.id,
-                abilityIndex,
-                effectIndex,
-            })
+        const subsystemType = get(ship, `${subsystem}.type`);
+        const isTargeted = TARGETED_EFFECTS.some(
+            (targetedEffectType) =>
+                targetedEffectType ===
+                PARTS[subsystemType].abilities[abilityIndex].effects.or[
+                    effectIndex
+                ].type
         );
+        if (isTargeted) {
+            dispatch(
+                requestTargetSelectionForEffect({
+                    subsystem,
+                    shipId: ship.id,
+                    abilityIndex,
+                    effectIndex,
+                })
+            );
+        } else {
+            dispatch(
+                abilityTriggerRequestAction({
+                    subsystem,
+                    shipId: ship.id,
+                    abilityIndex,
+                    effectIndex,
+                })
+            );
+        }
     };
 
     return (
@@ -99,7 +123,7 @@ export function ShipMap({ ship }) {
                         <Fragment key={subsystem.name}>
                             <ActionsMenu
                                 onMenuToggled={countToggledMenus}
-                                component={Parts[subsystem.type]}
+                                component={PARTS[subsystem.type]}
                                 reactor={ship.reactor}
                                 status={ship.aft[index].status}
                                 disabled={toggledMenus > 0}
@@ -135,7 +159,7 @@ export function ShipMap({ ship }) {
                             <ActionsMenu
                                 key={subsystem.name}
                                 onMenuToggled={countToggledMenus}
-                                component={Parts[subsystem.type]}
+                                component={PARTS[subsystem.type]}
                                 reactor={ship.reactor}
                                 status={ship.port[index].status}
                                 disabled={toggledMenus > 0}
@@ -171,7 +195,7 @@ export function ShipMap({ ship }) {
                         <Fragment key={subsystem.name}>
                             <ActionsMenu
                                 onMenuToggled={countToggledMenus}
-                                component={Parts[subsystem.type]}
+                                component={PARTS[subsystem.type]}
                                 reactor={ship.reactor}
                                 status={ship.forward[index].status}
                                 disabled={toggledMenus > 0}
@@ -209,7 +233,7 @@ export function ShipMap({ ship }) {
                         <Fragment key={subsystem.name}>
                             <ActionsMenu
                                 onMenuToggled={countToggledMenus}
-                                component={Parts[subsystem.type]}
+                                component={PARTS[subsystem.type]}
                                 reactor={ship.reactor}
                                 status={ship.starboard[index].status}
                                 disabled={toggledMenus > 0}

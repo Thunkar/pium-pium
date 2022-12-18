@@ -36,7 +36,7 @@ import {
     COSTS,
     usePower,
     EFFECTS,
-    Parts,
+    PARTS,
     SHIP_SIDES,
     SIDE_TO_ROTATION_MAP,
     setShipDirectionalSpeed,
@@ -322,7 +322,7 @@ function* triggerAbility({
 }) {
     const ship = (yield select(selectPlayerShips, playerId))[shipId];
     const systemType = get(ship, `${subsystem}.type`);
-    const ability = Parts[systemType].abilities[abilityIndex];
+    const ability = PARTS[systemType].abilities[abilityIndex];
     const { areCostsMet, sideEffects } = yield call(
         evaluateCosts,
         ship,

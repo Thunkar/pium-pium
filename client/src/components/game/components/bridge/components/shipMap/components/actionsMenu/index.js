@@ -152,7 +152,7 @@ export const ActionsMenu = ({
                             ability={ability}
                             status={status}
                             overlay={submenuOpen}
-                            onClick={() => onAbilityTriggered(abilityIndex)}
+                            onClick={() => onAbilityTriggered(abilityIndex, 0)}
                         ></Ability>
                     ) : (
                         hiearchicalMenuGenerator(

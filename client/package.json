@@ -17,6 +17,7 @@
         "@testing-library/react": "^13.4.0",
         "@testing-library/user-event": "^14.4.3",
         "lodash": "^4.17.21",
+        "lodash-es": "^4.17.21",
         "polished": "^4.2.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

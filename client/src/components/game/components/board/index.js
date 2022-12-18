@@ -1,12 +1,5 @@
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import {
-    forwardRef,
-    memo,
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -14,18 +7,13 @@ import {
     Plane,
     Stats,
     PerspectiveCamera,
-    Circle,
 } from '@react-three/drei';
 import Ship from './components/ship';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectShips } from 'pium-pium-engine';
-import { Vector3, TextureLoader, BackSide } from 'three';
-import {
-    EffectComposer,
-    GodRays,
-    SelectiveBloom,
-} from '@react-three/postprocessing';
-import { KernelSize, BlendFunction, Resizer } from 'postprocessing';
+import { Vector3 } from 'three';
+import { EffectComposer, SelectiveBloom } from '@react-three/postprocessing';
+import { KernelSize } from 'postprocessing';
 
 import PlayerList from './components/playerList';
 import {
@@ -35,81 +23,7 @@ import {
     setCameraMode,
     setSelectedShip,
 } from '../../../../reducers/playerReducer';
-import { current } from '@reduxjs/toolkit';
-
-let skyboxImage = 'milky_way';
-
-function createPathStrings(filename) {
-    const basePath = `assets/skyboxes/${filename}/`;
-    const baseFilename = basePath + filename;
-    const fileType = '.png';
-    const sides = ['ft', 'bk', 'up', 'dn', 'rt', 'lf'];
-    const pathStings = sides.map((side) => {
-        return baseFilename + '_' + side + fileType;
-    });
-
-    return pathStings;
-}
-
-const Sun = memo(
-    forwardRef(function Sun(props, forwardRef) {
-        return (
-            <Circle
-                args={[30, 30]}
-                ref={forwardRef}
-                position={[0, 50, 500]}
-                rotation-y={Math.PI}
-            >
-                <meshBasicMaterial color="lightblue" />
-            </Circle>
-        );
-    })
-);
-
-const MemoizedGodRays = memo(function MemoizedGodRays({ sun }) {
-    return (
-        <GodRays
-            sun={sun}
-            blendFunction={BlendFunction.Screen}
-            samples={60}
-            density={0.96}
-            decay={0.9}
-            weight={0.4}
-            exposure={0.6}
-            clampMax={1}
-            width={Resizer.AUTO_SIZE}
-            height={Resizer.AUTO_SIZE}
-            kernelSize={KernelSize.SMALL}
-            blur={true}
-        />
-    );
-});
-
-const MemoizedSkyBox = memo(function SkyBox() {
-    const materialArray = [];
-    if (materialArray.length === 0) {
-        const skyboxImagePaths = createPathStrings(skyboxImage);
-        skyboxImagePaths.forEach((image) =>
-            materialArray.push(useLoader(TextureLoader, image))
-        );
-    }
-    return (
-        <mesh>
-            <boxGeometry
-                args={[2000, 2000, 2000]}
-                attach={'geometry'}
-            ></boxGeometry>
-            {materialArray.map((texture, index) => (
-                <meshBasicMaterial
-                    attach={`material-${index}`}
-                    key={texture.id}
-                    map={texture}
-                    side={BackSide}
-                ></meshBasicMaterial>
-            ))}
-        </mesh>
-    );
-});
+import { MemoizedGodRays, MemoizedSkyBox, Sun } from './components/environment';
 
 const MemoizedSelectiveBloom = memo(function MemoizedSelectiveBloom({
     lights,
@@ -186,7 +100,7 @@ function Scene() {
             }
         }
         setLastCameraMode(cameraMode);
-    }, [ships, cameraMode]);
+    }, [ships, cameraMode, selectedShip]);
 
     const [bloomLights, setBloomLightRefs] = useState([]);
     const [bloomGeometries, setBloomGeometryRefs] = useState([]);
@@ -235,6 +149,7 @@ function Scene() {
             );
             dispatch(setSelectedShip({ shipId }));
             dispatch(setCameraMode(CAMERA_MODES.FOLLOW));
+            setCameraMoved(false);
         },
         [ships]
     );

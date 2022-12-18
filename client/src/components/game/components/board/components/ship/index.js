@@ -1,6 +1,9 @@
 import { useGLTF, Billboard, Text } from '@react-three/drei';
 import { animated, useSpring } from '@react-spring/three';
 import { Fragment, memo, useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectRangeVisualAid } from '../../../../../../reducers/playerReducer';
+import RangeAid from './components/rangeAid';
 
 function Ship({
     ship,
@@ -67,6 +70,9 @@ function Ship({
         ],
         color: 'white',
     }));
+    const rangeAid = useSelector((state) =>
+        selectRangeVisualAid(state, ship.id)
+    );
     return (
         <>
             <animated.mesh position={billboardPosition}>
@@ -127,6 +133,13 @@ function Ship({
                     distance={1.8}
                     castShadow
                 ></animated.pointLight>
+                {rangeAid && rangeAid.show && (
+                    <RangeAid
+                        orientation={rangeAid.orientation}
+                        angle={rangeAid.angle}
+                        range={rangeAid.range}
+                    ></RangeAid>
+                )}
             </animated.group>
         </>
     );
