@@ -5,14 +5,14 @@ import {
     Stars,
     OrbitControls,
     Plane,
-    Stats,
     PerspectiveCamera,
 } from '@react-three/drei';
+import { Perf } from 'r3f-perf';
 import Ship from './components/ship';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectShips } from 'pium-pium-engine';
 import { Vector3 } from 'three';
-import { EffectComposer, SelectiveBloom } from '@react-three/postprocessing';
+import { EffectComposer } from '@react-three/postprocessing';
 import { KernelSize } from 'postprocessing';
 
 import PlayerList from './components/playerList';
@@ -23,25 +23,17 @@ import {
     setCameraMode,
     setSelectedShip,
 } from '../../../../reducers/playerReducer';
-import { MemoizedGodRays, MemoizedSkyBox, Sun } from './components/environment';
-
-const MemoizedSelectiveBloom = memo(function MemoizedSelectiveBloom({
-    lights,
-    geometries,
-}) {
-    return (
-        <SelectiveBloom
-            lights={lights}
-            selection={geometries}
-            selectionLayer={1}
-            intensity={3}
-            luminanceThreshold={0.75}
-            luminanceSmoothing={0.025}
-            blurPass={null}
-            kernelSize={KernelSize.LARGE}
-        />
-    );
-});
+import {
+    MemoizedGodRays,
+    MemoizedSelectiveBloom,
+    MemoizedOutline,
+    MemoizedSkyBox,
+    Sun,
+} from './components/environment';
+import {
+    addRefToArrayCallbackFactory,
+    removeRefFromArrayCallbackFactory,
+} from '../../../common/utils/refUtils';
 
 function Scene() {
     const dispatch = useDispatch();
@@ -102,39 +94,26 @@ function Scene() {
         setLastCameraMode(cameraMode);
     }, [ships, cameraMode, selectedShip]);
 
-    const [bloomLights, setBloomLightRefs] = useState([]);
-    const [bloomGeometries, setBloomGeometryRefs] = useState([]);
-    const [sun, sunRef] = useState();
+    const [bloomLightRefs, setBloomLightRefs] = useState([]);
+    const [bloomGeometryRefs, setBloomGeometryRefs] = useState([]);
+    const [sunRef, setSunRef] = useState();
+    const [shipRefs, setShipRefs] = useState([]);
+    const [hoveredItemRef, setHoveredItemRef] = useState(null);
 
-    const setBloomLightRef = useCallback((el) => {
-        if (el) {
-            setBloomLightRefs((currentRefs) => currentRefs.concat([el]));
-        }
-    }, []);
+    const setBloomLightRef = addRefToArrayCallbackFactory(setBloomLightRefs);
 
-    const setBloomGeometryRef = useCallback((el) => {
-        if (el) {
-            setBloomGeometryRefs((currentRefs) => currentRefs.concat([el]));
-        }
-    }, []);
+    const setBloomGeometryRef =
+        addRefToArrayCallbackFactory(setBloomGeometryRefs);
 
-    const cleanupBloomLightRefs = useCallback((elements) => {
-        setBloomLightRefs((currentRefs) =>
-            currentRefs.filter(
-                (light) =>
-                    !elements.find((element) => element.uuid === light.uuid)
-            )
-        );
-    }, []);
+    const setShipRef = addRefToArrayCallbackFactory(setShipRefs);
 
-    const cleanupBloomGeometryRefs = useCallback((elements) => {
-        setBloomGeometryRefs((currentRefs) =>
-            currentRefs.filter(
-                (geometry) =>
-                    !elements.find((element) => element.uuid === geometry.uuid)
-            )
-        );
-    }, []);
+    const cleanupBloomLightRef =
+        removeRefFromArrayCallbackFactory(setBloomLightRefs);
+
+    const cleanupBloomGeometryRef =
+        removeRefFromArrayCallbackFactory(setBloomGeometryRefs);
+
+    const cleanupShipRef = removeRefFromArrayCallbackFactory(setShipRefs);
 
     const onShipSelected = useCallback(
         (e) => {
@@ -154,6 +133,16 @@ function Scene() {
         [ships]
     );
 
+    const onShipHovered = useCallback(
+        (e) => {
+            const shipRef = shipRefs.find(
+                (ref) => ref.userData.shipId === e.eventObject.userData.shipId
+            );
+            setHoveredItemRef(shipRef);
+        },
+        [shipRefs]
+    );
+
     const onMovementStart = useCallback((event) => {
         setCameraPosition(event.target.object.position);
         setCameraMoved(true);
@@ -165,22 +154,25 @@ function Scene() {
 
     return (
         <>
-            <Stats></Stats>
+            <Perf position="top-left" showGraph />
             <Stars saturation={10} />
             <fogExp2 color={'black'} density={0.0015} attach="fog" />
             <ambientLight color="white" intensity={0.5} />
-            <Sun ref={sunRef} />
+            <Sun ref={setSunRef} />
             <MemoizedSkyBox />
             {ships.map((ship) => (
                 <Ship
                     id={ship.id}
                     key={ship.id}
                     ship={ship}
+                    onHover={onShipHovered}
                     onClick={onShipSelected}
+                    setShipRef={setShipRef}
                     setBloomLightRef={setBloomLightRef}
                     setBloomGeometryRef={setBloomGeometryRef}
-                    cleanupBloomLightRefs={cleanupBloomLightRefs}
-                    cleanupBloomGeometryRefs={cleanupBloomGeometryRefs}
+                    cleanupShipRef={cleanupShipRef}
+                    cleanupBloomLightRef={cleanupBloomLightRef}
+                    cleanupBloomGeometryRef={cleanupBloomGeometryRef}
                 ></Ship>
             ))}
             <Plane rotation-x={-Math.PI / 2} args={[100, 100, 100, 100]}>
@@ -199,13 +191,16 @@ function Scene() {
                 ref={controls}
             />
 
-            <EffectComposer>
-                {sun && <MemoizedGodRays sun={sun} />}
-                {bloomGeometries && bloomLights && (
+            <EffectComposer autoClear={false}>
+                {sunRef && <MemoizedGodRays sun={sunRef} />}
+                {bloomGeometryRefs && bloomLightRefs && (
                     <MemoizedSelectiveBloom
-                        lights={bloomLights}
-                        geometries={bloomGeometries}
+                        lights={bloomLightRefs}
+                        geometries={bloomGeometryRefs}
                     />
+                )}
+                {hoveredItemRef && (
+                    <MemoizedOutline geometries={[hoveredItemRef]} />
                 )}
             </EffectComposer>
         </>

@@ -8,27 +8,37 @@ import RangeAid from './components/rangeAid';
 function Ship({
     ship,
     onClick,
+    onHover,
+    setShipRef,
     setBloomLightRef,
     setBloomGeometryRef,
-    cleanupBloomLightRefs,
-    cleanupBloomGeometryRefs,
+    cleanupShipRef,
+    cleanupBloomLightRef,
+    cleanupBloomGeometryRef,
 }) {
-    const [bloomLightRefs, setBloomLightRefs] = useState([]);
-    const [bloomGeometryRefs, setBloomGeometryRefs] = useState([]);
+    const [localShipRef, setLocalShipRef] = useState(null);
+    const [localBloomLightRef, setLocalBloomLightRef] = useState(null);
+    const [localBloomGeometryRefs, setLocalBloomGeometryRefs] = useState([]);
     useEffect(() => {
         return () => {
-            cleanupBloomGeometryRefs(bloomGeometryRefs);
-            cleanupBloomLightRefs(bloomLightRefs);
+            cleanupShipRef([localShipRef]);
+            cleanupBloomGeometryRef(localBloomGeometryRefs);
+            cleanupBloomLightRef([localBloomLightRef]);
         };
-    }, [bloomLightRefs, bloomGeometryRefs]);
+    }, [localShipRef, localBloomLightRef, localBloomGeometryRefs]);
+    const addShipRef = useCallback((el) => {
+        if (!el) return;
+        setLocalShipRef(el);
+        setShipRef(el);
+    }, []);
     const addBloomLightRef = useCallback((el) => {
         if (!el) return;
-        setBloomLightRefs((currentRefs) => currentRefs.concat([el]));
+        setLocalBloomLightRef(el);
         setBloomLightRef(el);
     }, []);
     const addBloomGeometryRef = useCallback((el) => {
         if (!el) return;
-        setBloomGeometryRefs((currentRefs) => currentRefs.concat([el]));
+        setLocalBloomGeometryRefs((currentRefs) => currentRefs.concat([el]));
         setBloomGeometryRef(el);
     }, []);
     const { nodes, materials } = useGLTF('assets/ship.gltf');
@@ -88,8 +98,8 @@ function Ship({
             <animated.group
                 position={position}
                 rotation-y={rotation}
-                dispose={null}
                 onClick={onClick}
+                onPointerOver={onHover}
                 userData={{
                     shipId: ship.id,
                 }}
@@ -106,6 +116,10 @@ function Ship({
                     material={materials['SF_Corvette_F3.001']}
                     rotation={[Math.PI / 2, 0, 0]}
                     scale={0.001}
+                    userData={{
+                        shipId: ship.id,
+                    }}
+                    ref={addShipRef}
                     castShadow
                     receiveShadow
                 />
