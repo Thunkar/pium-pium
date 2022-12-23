@@ -118,7 +118,9 @@ export const PARTS = {
                 ],
                 text: 'Barrage',
                 effects: {
-                    or: [{ type: EFFECTS.DAMAGE, value: '3 x 2' }],
+                    or: [
+                        { type: EFFECTS.DAMAGE, value: [3, 2], difficulty: 3 },
+                    ],
                 },
             },
         ],
@@ -129,7 +131,30 @@ export const PARTS = {
     },
     [SUBSYSTEMS.LASER]: {
         type: SUBSYSTEMS.LASER,
-        abilities: [],
+        abilities: [
+            {
+                costs: [
+                    {
+                        type: COSTS.ENERGY,
+                        value: 3,
+                    },
+                    {
+                        type: COSTS.ANGLE,
+                        value: 1,
+                    },
+                    {
+                        type: COSTS.RANGE,
+                        value: 4,
+                    },
+                ],
+                text: 'Light show',
+                effects: {
+                    or: [
+                        { type: EFFECTS.DAMAGE, value: [4, 2], difficulty: 3 },
+                    ],
+                },
+            },
+        ],
     },
     [SUBSYSTEMS.DISRUPTOR]: {
         type: SUBSYSTEMS.DISRUPTOR,

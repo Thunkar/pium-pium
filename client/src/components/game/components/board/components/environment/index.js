@@ -62,25 +62,28 @@ export const MemoizedSelectiveBloom = memo(function MemoizedSelectiveBloom({
             lights={lights}
             selection={geometries}
             selectionLayer={1}
-            intensity={3}
-            luminanceThreshold={0.75}
-            luminanceSmoothing={0.025}
+            intensity={1}
+            luminanceThreshold={1}
+            luminanceSmoothing={0.075}
             blurPass={null}
             kernelSize={KernelSize.LARGE}
         />
     );
 });
 
-export const MemoizedOutline = memo(function MemoizedOutline({ geometries }) {
+export const MemoizedOutline = memo(function MemoizedOutline({
+    color,
+    geometries,
+}) {
     return (
         <Outline
             selection={geometries} // selection of objects that will be outlined
-            selectionLayer={1} // selection layer
+            selectionLayer={2} // selection layer
             blendFunction={BlendFunction.SCREEN} // set this to BlendFunction.ALPHA for dark outlines
             patternTexture={null} // a pattern texture
             edgeStrength={10} // the edge strength
             pulseSpeed={0.0} // a pulse speed. A value of zero disables the pulse effect
-            visibleEdgeColor={0xffffff} // the color of visible edges
+            visibleEdgeColor={color} // the color of visible edges
             hiddenEdgeColor={0x22090a} // the color of hidden edges
             width={Resizer.AUTO_SIZE} // render width
             height={Resizer.AUTO_SIZE} // render height

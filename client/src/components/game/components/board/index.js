@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as SC from './index.styles';
 import {
     Stars,
@@ -13,15 +13,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectShips } from 'pium-pium-engine';
 import { Vector3 } from 'three';
 import { EffectComposer } from '@react-three/postprocessing';
-import { KernelSize } from 'postprocessing';
 
 import PlayerList from './components/playerList';
 import {
     CAMERA_MODES,
+    PLAYER_MODE,
     selectCameraMode,
+    selectPlayerId,
+    selectPlayerMode,
     selectSelectedShip,
     setCameraMode,
     setSelectedShip,
+    targetSelectedAction,
 } from '../../../../reducers/playerReducer';
 import {
     MemoizedGodRays,
@@ -34,10 +37,12 @@ import {
     addRefToArrayCallbackFactory,
     removeRefFromArrayCallbackFactory,
 } from '../../../common/utils/refUtils';
+import Weapons from './components/weapons';
 
 function Scene() {
     const dispatch = useDispatch();
     const ships = useSelector(selectShips);
+    const playerId = useSelector(selectPlayerId);
     const camera = useRef(null);
     const controls = useRef(null);
     const [lastCameraMode, setLastCameraMode] = useState(null);
@@ -94,54 +99,61 @@ function Scene() {
         setLastCameraMode(cameraMode);
     }, [ships, cameraMode, selectedShip]);
 
-    const [bloomLightRefs, setBloomLightRefs] = useState([]);
     const [bloomGeometryRefs, setBloomGeometryRefs] = useState([]);
     const [sunRef, setSunRef] = useState();
     const [shipRefs, setShipRefs] = useState([]);
     const [hoveredItemRef, setHoveredItemRef] = useState(null);
-
-    const setBloomLightRef = addRefToArrayCallbackFactory(setBloomLightRefs);
 
     const setBloomGeometryRef =
         addRefToArrayCallbackFactory(setBloomGeometryRefs);
 
     const setShipRef = addRefToArrayCallbackFactory(setShipRefs);
 
-    const cleanupBloomLightRef =
-        removeRefFromArrayCallbackFactory(setBloomLightRefs);
-
     const cleanupBloomGeometryRef =
         removeRefFromArrayCallbackFactory(setBloomGeometryRefs);
 
     const cleanupShipRef = removeRefFromArrayCallbackFactory(setShipRefs);
 
-    const onShipSelected = useCallback(
+    const playerMode = useSelector(selectPlayerMode);
+
+    const onShipClicked = useCallback(
         (e) => {
             const shipId = e.eventObject.userData.shipId;
             const ship = ships.find((ship) => ship.id === shipId);
-            setCameraPosition(
-                new Vector3(
-                    ...ship?.position.map((coord) =>
-                        coord > 0 ? coord + 5 : coord - 5
+            if (playerMode === PLAYER_MODE.TARGETING) {
+                dispatch(targetSelectedAction(shipId));
+            } else {
+                setCameraPosition(
+                    new Vector3(
+                        ...ship?.position.map((coord) =>
+                            coord > 0 ? coord + 5 : coord - 5
+                        )
                     )
-                )
-            );
-            dispatch(setSelectedShip({ shipId }));
-            dispatch(setCameraMode(CAMERA_MODES.FOLLOW));
-            setCameraMoved(false);
+                );
+                dispatch(setSelectedShip({ shipId }));
+                dispatch(setCameraMode(CAMERA_MODES.FOLLOW));
+                setCameraMoved(false);
+            }
         },
         [ships]
     );
 
+    const [outlineColor, setOutlineColor] = useState('white');
+
     const onShipHovered = useCallback(
         (e) => {
+            const shipId = e.eventObject.userData.shipId;
+            const ship = ships.find((ship) => ship.id === shipId);
             const shipRef = shipRefs.find(
-                (ref) => ref.userData.shipId === e.eventObject.userData.shipId
+                (ref) => ref.userData.shipId === shipId
             );
+            setOutlineColor(ship.playerId === playerId ? 'white' : 'red');
             setHoveredItemRef(shipRef);
         },
         [shipRefs]
     );
+
+    const cleanupHover = useCallback(() => setHoveredItemRef(null));
 
     const onMovementStart = useCallback((event) => {
         setCameraPosition(event.target.object.position);
@@ -152,12 +164,14 @@ function Scene() {
         setCameraPosition(event.target.object.position);
     });
 
+    const ambientLightRef = useRef();
+
     return (
         <>
             <Perf position="top-left" showGraph />
             <Stars saturation={10} />
             <fogExp2 color={'black'} density={0.0015} attach="fog" />
-            <ambientLight color="white" intensity={0.5} />
+            <ambientLight ref={ambientLightRef} color="white" intensity={0.5} />
             <Sun ref={setSunRef} />
             <MemoizedSkyBox />
             {ships.map((ship) => (
@@ -165,16 +179,20 @@ function Scene() {
                     id={ship.id}
                     key={ship.id}
                     ship={ship}
-                    onHover={onShipHovered}
-                    onClick={onShipSelected}
+                    onPointerEnter={onShipHovered}
+                    onPointerLeave={cleanupHover}
+                    onClick={onShipClicked}
                     setShipRef={setShipRef}
-                    setBloomLightRef={setBloomLightRef}
                     setBloomGeometryRef={setBloomGeometryRef}
                     cleanupShipRef={cleanupShipRef}
-                    cleanupBloomLightRef={cleanupBloomLightRef}
                     cleanupBloomGeometryRef={cleanupBloomGeometryRef}
                 ></Ship>
             ))}
+            <Weapons
+                ships={ships}
+                setBloomGeometryRef={setBloomGeometryRef}
+                cleanupBloomGeometryRef={cleanupBloomGeometryRef}
+            />
             <Plane rotation-x={-Math.PI / 2} args={[100, 100, 100, 100]}>
                 <meshBasicMaterial
                     opacity={0.01}
@@ -182,7 +200,7 @@ function Scene() {
                     transparent
                 />
             </Plane>
-            <gridHelper args={[100, 100]}></gridHelper>
+            <gridHelper args={[100, 100]} />
             <PerspectiveCamera makeDefault ref={camera} />
             <OrbitControls
                 enableRotate={cameraMode !== CAMERA_MODES.MAP}
@@ -193,14 +211,17 @@ function Scene() {
 
             <EffectComposer autoClear={false}>
                 {sunRef && <MemoizedGodRays sun={sunRef} />}
-                {bloomGeometryRefs && bloomLightRefs && (
+                {bloomGeometryRefs && ambientLightRef && (
                     <MemoizedSelectiveBloom
-                        lights={bloomLightRefs}
+                        lights={[ambientLightRef]}
                         geometries={bloomGeometryRefs}
                     />
                 )}
                 {hoveredItemRef && (
-                    <MemoizedOutline geometries={[hoveredItemRef]} />
+                    <MemoizedOutline
+                        geometries={[hoveredItemRef]}
+                        color={outlineColor}
+                    />
                 )}
             </EffectComposer>
         </>

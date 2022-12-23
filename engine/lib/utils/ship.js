@@ -5,6 +5,7 @@ import {
     animals,
 } from 'unique-names-generator';
 import { SUBSYSTEMS } from '../index.mjs';
+import { vectorFromMagnitudeAndAngle } from './math.js';
 
 export const INITIAL_POSITIONS = [
     { x: 0, y: -50 },
@@ -34,14 +35,6 @@ export const ROTATION_INCREMENT = Math.PI / 4;
 export const ALLOWED_AXES = new Array(8)
     .fill(null)
     .map((value, index) => (index * Math.PI) / 4);
-
-export function vectorFromMagnitudeAndAngle(magnitude, angle) {
-    return new Vec3(
-        magnitude * Math.sin(angle),
-        0,
-        magnitude * Math.cos(angle)
-    );
-}
 
 export function addSpeeds(currentSpeed) {
     return Object.keys(currentSpeed).reduce(

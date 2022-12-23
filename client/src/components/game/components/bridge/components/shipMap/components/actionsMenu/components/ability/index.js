@@ -21,24 +21,34 @@ const Ability = function ({ ability, status, overlay, disabled, onClick }) {
             disabled={disabled}
             onClick={onAbilityTriggered}
         >
-            <SC.COSTS>
+            <SC.Costs>
                 {ability.costs?.map((cost, index) => (
                     <SC.CostContainer key={`cost-${index}`}>
                         {cost.value}&nbsp;
                         {<CustomIcon icon={cost.type}></CustomIcon>}
                     </SC.CostContainer>
                 ))}
-            </SC.COSTS>
+            </SC.Costs>
             <SC.TextContainer>{ability.text}</SC.TextContainer>
-            <SC.COSTS>
+            <SC.Costs>
                 {ability.effects?.or
                     ?.filter((or) => !or.onlyInSubmenu)
                     .map((or, index) => (
                         <Fragment key={`effect-${index}`}>
                             <SC.CostContainer>
-                                {or.value}&nbsp;
-                                {<CustomIcon icon={or.type}></CustomIcon>}
+                                {Array.isArray(or.value)
+                                    ? or.value.join('x')
+                                    : or.value}
+                                &nbsp;
+                                <CustomIcon icon={or.type}></CustomIcon>
                             </SC.CostContainer>
+                            {or.difficulty && (
+                                <SC.CostContainer>
+                                    {or.difficulty}
+                                    &nbsp;
+                                    <CustomIcon icon="dice"></CustomIcon>
+                                </SC.CostContainer>
+                            )}
                             {or.text ? (
                                 <SC.DetailTextContainer>
                                     {or.text}
@@ -51,7 +61,7 @@ const Ability = function ({ ability, status, overlay, disabled, onClick }) {
                                     1 && <p>|&nbsp;</p>}
                         </Fragment>
                     ))}
-            </SC.COSTS>
+            </SC.Costs>
         </SC.Ability>
     );
 };

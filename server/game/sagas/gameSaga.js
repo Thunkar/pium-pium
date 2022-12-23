@@ -52,8 +52,12 @@ import {
     INITIAL_POSITIONS,
     INITIAL_ROTATIONS,
     createShip,
+    selectShip,
+    weaponFiredAction,
+    setShipHullValue,
 } from 'pium-pium-engine';
 import { get } from 'lodash-es';
+import { throwD10 } from 'pium-pium-engine/lib/utils/math.js';
 
 function* shipFactory(playerId) {
     const ships = yield select(selectShips);
@@ -140,8 +144,8 @@ function illegalActionHandler() {
     console.error("Hey! That's illegal");
 }
 
-function* managePower({ payload: { playerId, shipId, subsystem, value } }) {
-    const ship = (yield select(selectPlayerShips, playerId))[shipId];
+function* managePower({ payload: { shipId, subsystem, value } }) {
+    const ship = yield select(selectShip, shipId);
     const isVenting = value < 0;
     const currentPower = get(ship, `${subsystem}.status.power.current`);
     const usedPower = get(ship, `${subsystem}.status.power.used`);
@@ -162,8 +166,8 @@ function* managePower({ payload: { playerId, shipId, subsystem, value } }) {
     }
 }
 
-function* manageHeat({ payload: { playerId, shipId, subsystem, value } }) {
-    const ship = (yield select(selectPlayerShips, playerId))[shipId];
+function* manageHeat({ payload: { shipId, subsystem, value } }) {
+    const ship = yield select(selectShip, shipId);
     const currentHeat = get(ship, `${subsystem}.status.heat`);
     if (currentHeat > 0 && ship.reactor.vented < ship.reactor.maxVent) {
         yield call(
@@ -312,15 +316,39 @@ function applyEffects(ship, subsystem, effects, effectIndex, target) {
                 );
                 break;
             }
+            case EFFECTS.DAMAGE: {
+                const weaponType = get(ship, subsystem).type;
+                const [value, dice] = effect.value;
+                const damage = new Array(dice)
+                    .fill(null)
+                    .map(() => (throwD10() > effect.difficulty ? value : 0))
+                    .reduce((previous, current) => previous + current, 0);
+                sideEffects.push(
+                    weaponFiredAction({
+                        type: weaponType,
+                        source: ship.id,
+                        target: target.id,
+                        damage,
+                    })
+                );
+                sideEffects.push(
+                    setShipHullValue({
+                        shipId: target.id,
+                        hull: target.hull - damage,
+                    })
+                );
+                break;
+            }
         }
     });
     return sideEffects;
 }
 
 function* triggerAbility({
-    payload: { playerId, shipId, subsystem, abilityIndex, target, effectIndex },
+    payload: { shipId, subsystem, abilityIndex, target, effectIndex },
 }) {
-    const ship = (yield select(selectPlayerShips, playerId))[shipId];
+    const ship = yield select(selectShip, shipId);
+    const targetShip = target ? yield select(selectShip, target) : null;
     const systemType = get(ship, `${subsystem}.type`);
     const ability = PARTS[systemType].abilities[abilityIndex];
     const { areCostsMet, sideEffects } = yield call(
@@ -328,7 +356,7 @@ function* triggerAbility({
         ship,
         subsystem,
         ability.costs,
-        target
+        targetShip
     );
     if (!areCostsMet) {
         yield call(illegalActionHandler);
@@ -341,7 +369,7 @@ function* triggerAbility({
         subsystem,
         ability.effects,
         effectIndex,
-        target
+        targetShip
     );
     yield all(effects.map((action) => call(serverDispatch, action)));
 }

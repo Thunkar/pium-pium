@@ -11,7 +11,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { Typography } from '@mui/material';
 import {
-    requestTargetSelectionForEffect,
+    requestTargetSelectionForEffectAction,
     selectPlayerId,
 } from '../../../../../../reducers/playerReducer.js';
 import { get } from 'lodash-es';
@@ -57,7 +57,7 @@ export function ShipMap({ ship }) {
         );
         if (isTargeted) {
             dispatch(
-                requestTargetSelectionForEffect({
+                requestTargetSelectionForEffectAction({
                     subsystem,
                     shipId: ship.id,
                     abilityIndex,

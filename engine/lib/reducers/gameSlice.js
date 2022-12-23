@@ -148,6 +148,10 @@ const gameSlice = createSlice({
             const { shipId, rotation } = action.payload;
             draft.ships[shipId].rotation = rotation;
         },
+        setShipHullValue: (draft, action) => {
+            const { shipId, hull } = action.payload;
+            draft.ships[shipId].hull = hull;
+        },
     },
 });
 
@@ -170,6 +174,7 @@ export const {
     overheat,
     setShipRotationalSpeed,
     setShipRotation,
+    setShipHullValue,
 } = gameSlice.actions;
 export const syncRequestAction = createAction('game/syncRequest');
 export const seatPlayerAction = createAction('game/seatPlayer');
@@ -181,12 +186,16 @@ export const abilityTriggerRequestAction = createAction(
     'game/abilityTriggerRequest'
 );
 export const ventHeatRequestAction = createAction('game/ventHeatRequest');
+export const weaponFiredAction = createAction('game/weaponFired');
 export const actionsByType = Object.values(gameSlice.actions)
     .concat([
         syncRequestAction,
         seatPlayerAction,
         unseatPlayerAction,
         powerManagementRequestAction,
+        abilityTriggerRequestAction,
+        ventHeatRequestAction,
+        weaponFiredAction,
     ])
     .reduce((previous, current) => {
         return { ...previous, ...{ [current.type]: current } };

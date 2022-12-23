@@ -1,40 +1,33 @@
-import { useGLTF, Billboard, Text } from '@react-three/drei';
+import { useGLTF, Billboard, Text, Circle } from '@react-three/drei';
 import { animated, useSpring } from '@react-spring/three';
 import { Fragment, memo, useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRangeVisualAid } from '../../../../../../reducers/playerReducer';
 import RangeAid from './components/rangeAid';
+import Line from '../../../../../common/Line';
 
 function Ship({
     ship,
     onClick,
-    onHover,
+    onPointerEnter,
+    onPointerLeave,
     setShipRef,
-    setBloomLightRef,
     setBloomGeometryRef,
     cleanupShipRef,
-    cleanupBloomLightRef,
     cleanupBloomGeometryRef,
 }) {
     const [localShipRef, setLocalShipRef] = useState(null);
-    const [localBloomLightRef, setLocalBloomLightRef] = useState(null);
     const [localBloomGeometryRefs, setLocalBloomGeometryRefs] = useState([]);
     useEffect(() => {
         return () => {
             cleanupShipRef([localShipRef]);
             cleanupBloomGeometryRef(localBloomGeometryRefs);
-            cleanupBloomLightRef([localBloomLightRef]);
         };
-    }, [localShipRef, localBloomLightRef, localBloomGeometryRefs]);
+    }, [localShipRef, localBloomGeometryRefs]);
     const addShipRef = useCallback((el) => {
         if (!el) return;
         setLocalShipRef(el);
         setShipRef(el);
-    }, []);
-    const addBloomLightRef = useCallback((el) => {
-        if (!el) return;
-        setLocalBloomLightRef(el);
-        setBloomLightRef(el);
     }, []);
     const addBloomGeometryRef = useCallback((el) => {
         if (!el) return;
@@ -59,10 +52,10 @@ function Ship({
     });
     const { motorIntensity } = useSpring({
         from: {
-            motorIntensity: 2,
+            motorIntensity: 1,
         },
         to: {
-            motorIntensity: 4,
+            motorIntensity: 2,
         },
         config: {
             mass: 8,
@@ -78,7 +71,7 @@ function Ship({
             -0.25 * (index % 2 ? -1 : 1),
             -1.43,
         ],
-        color: 'white',
+        color: [2, 2, 2],
     }));
     const rangeAid = useSelector((state) =>
         selectRangeVisualAid(state, ship.id)
@@ -99,7 +92,8 @@ function Ship({
                 position={position}
                 rotation-y={rotation}
                 onClick={onClick}
-                onPointerOver={onHover}
+                onPointerEnter={onPointerEnter}
+                onPointerLeave={onPointerLeave}
                 userData={{
                     shipId: ship.id,
                 }}
@@ -134,19 +128,27 @@ function Ship({
                             <meshStandardMaterial
                                 color={motor.color}
                                 attach="material"
+                                toneMapped={false}
                             />
                         </mesh>
                     </Fragment>
                 ))}
                 <animated.pointLight
                     color={motors[0].color}
-                    ref={addBloomLightRef}
                     position={[0, 0, -2]}
                     intensity={motorIntensity}
                     decay={1.5}
                     distance={1.8}
                     castShadow
                 ></animated.pointLight>
+                <Line start={[0, 0, 0]} end={[0, -2, 0]} color="grey" />
+                <Circle
+                    args={[0.2, 50]}
+                    rotation-x={-Math.PI / 2}
+                    position={[0, -2, 0]}
+                >
+                    <meshBasicMaterial color="grey" />
+                </Circle>
                 {rangeAid && rangeAid.show && (
                     <RangeAid
                         orientation={rangeAid.orientation}
